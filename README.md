@@ -1,8 +1,10 @@
-
+![wip](docs/images/WIP.png)
 
 # GHEC Health Check App
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that An App to run a set of Health checks against the GitHub platform
+ A GitHub App  to run a set of Health checks against the GitHub platform.
+
+(Built with [Probot](https://github.com/probot/probot))
 
 ## Setup
 
