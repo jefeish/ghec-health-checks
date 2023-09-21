@@ -1,0 +1,32 @@
+---
+health_checks:
+  - name: "check_repo"
+    description: standard repository checks (clone, push, PR)
+    type: "repo"
+    severity: "critical"
+    message: "This is a custom message"
+    params:
+      repo: "" # required: repository name
+      branch: "" # optional: default is "main"
+      description: "" 
+
+  - name: "check_repo_1"
+    description: standard repository checks (clone, push, PR)
+    type: "repo"
+    severity: "critical"
+    message: "This is a custom message"
+    params:
+      repo: "" # required: repository name
+      branch: "" # optional: default is "main"
+      description: "" 
+
+  - name: "foo1"
+    description: standard repository checks (clone, push, PR)
+    type: "repo"
+    severity: "critical"
+    message: "This is a custom message"
+    params:
+      repo: "" # required: repository name
+      branch: "" # optional: default is "main"
+      description: "" 
+
