@@ -78,7 +78,18 @@ module.exports = (app, { getRouter }) => {
   // Trigger option for the Health checks
   app.on('issue.created', async context => {
     app.log.info('issue.created')
-    executeHealthChecks(app, context, config)
+    const report = executeHealthChecks(app, context, config)
+
+    const issue = context.issue(
+      {
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        title: 'Health check report',
+        body: '# Health Check Report:'+ report
+      }
+    )
+    
+    return context.github.issues.create(issue)
   })
 
   executeHealthChecks(app, app.context, config)
@@ -114,16 +125,6 @@ function executeHealthChecks(app, context, config) {
       // add the result to the report
       report += { "name": check.name, "result": result }
 
-      const issue = context.issue(
-        {
-          owner: context.payload.repository.owner.login,
-          repo: context.payload.repository.name,
-          title: 'Health check report',
-          body: '# Health Check Report:'
-        }
-      )
-      
-      return context.github.issues.create(issue)
     }
     else { // if the health check module is not found
       app.log.error("healthCheck not found: " + check.name)

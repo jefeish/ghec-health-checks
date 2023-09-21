@@ -1,6 +1,6 @@
 ---
 health_checks:
-  - name: "check_repo"
+  - name: "check_repo_clone"
     description: standard repository checks (clone, push, PR)
     type: "repo"
     severity: "critical"
@@ -10,7 +10,7 @@ health_checks:
       branch: "" # optional: default is "main"
       description: "" 
 
-  - name: "check_repo_1"
+  - name: "check_repo_commit"
     description: standard repository checks (clone, push, PR)
     type: "repo"
     severity: "critical"
@@ -20,7 +20,7 @@ health_checks:
       branch: "" # optional: default is "main"
       description: "" 
 
-  - name: "foo1"
+  - name: "check_repo_pr"
     description: standard repository checks (clone, push, PR)
     type: "repo"
     severity: "critical"
