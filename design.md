@@ -1,3 +1,5 @@
+![wip](docs/images/WIP.png)
+
 # Health Check App - Design Doc
 
 ## The Objective
