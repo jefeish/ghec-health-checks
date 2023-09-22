@@ -4,6 +4,8 @@
 
  A GitHub App  to run a set of Health checks against the GitHub platform.
 
+![diagram](docs/images/architecture.svg)
+
 (Built with [Probot](https://github.com/probot/probot))
 
 ## Setup
