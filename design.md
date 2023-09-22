@@ -41,6 +41,15 @@ Verifying the operational integrity of the GitHub platform using the GitHub API.
 
 ---
 
+## Features
+
+- Dynamically reload Health Check configuration (yaml)
+   - Activate or Deactivate health checks at runtime
+- Dynamically load/reload Health Check Modules (.js)
+   - New Health Check Modules can be loaded at runtime, no App restart required
+
+---
+
 ## Architecture
 
 ![diagram](docs/images/architecture.svg)
