@@ -5,7 +5,9 @@
 const init = require('./init.js')
 const util = require('util')
 const fs = require('fs');
-// const ui = require('./ui/appUI.js')
+const ui = require('./ui/appUI.js')
+const Report = require('./report');
+const path = require('path');
 
 let healthChecksModules = new Map()
 let config = null
@@ -22,14 +24,18 @@ module.exports = (app, { getRouter }) => {
   // Initialize the Health Check App
   // ---------------------------------------------------------------------------
 
-  // webUI = new ui(getRouter('/healthCheck'))
-  // webUI.start()
+  // initialize the web UI
+  const webUI = new ui(app, getRouter('/healthCheck'), null)
+  webUI.start()
 
   // ---------------------------------------------------------------------------
+  // load App configurations from .github/config.yml and watch for changes
+  // ---------------------------------------------------------------------------
+
   //read the environment variable for the config file path
   const configPath = process.cwd() + process.env.HEALTHCHECK_CONFIG_PATH
 
-  // load App configurations from .github/config.yml
+  // initial read of the config file
   config = init.loadConfig(app, configPath)
 
   // Watch for file changes to 'configPath' (yaml)
@@ -47,10 +53,13 @@ module.exports = (app, { getRouter }) => {
   });
 
   // ---------------------------------------------------------------------------
+  // load all health check modules from the HealthChecks/ folder and watch for changes
+  // ---------------------------------------------------------------------------
+
   // read the environment variable for the folder path
   const modulesPath = process.cwd() + process.env.HEALTHCHECK_MODULE_PATH
 
-  // load all health check modules from the HealthChecks/ folder
+  // initial read of the 'HealthChecks/' folder
   healthChecksModules = init.registerHealthCheckModules(app, modulesPath)
 
   // Watch for file changes (add, delete) to 'modulesPath'
@@ -76,25 +85,39 @@ module.exports = (app, { getRouter }) => {
   // ---------------------------------------------------------------------------
 
   // Trigger option for the Health checks
-  app.on('issue.created', async context => {
-    app.log.info('issue.created')
-    const report = executeHealthChecks(app, context, config)
+  app.on('issues.opened', async context => {
+    app.log.info('issues.opened')
 
-    const issue = context.issue(
-      {
-        owner: context.payload.repository.owner.login,
-        repo: context.payload.repository.name,
-        title: 'Health check report',
-        body: '# Health Check Report:'+ report
-      }
-    )
-    
-    return context.github.issues.create(issue)
+    // prevent the bot from triggering itself
+    if (context.payload.sender.type !== 'Bot') {
+      app.log.info('...sender is not a bot')
+
+      const report = executeHealthChecks(app, app.context, config)
+      const issue = context.issue(
+        {
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          title: 'Health check report',
+          body: '# Health Check Report:\n\n'+ report.markdown()
+        }
+      )
+
+      app.log.info("report: " + report.json())
+      app.log.info("report: " + report.markdown())
+      app.log.info("report: " + report.csv())
+
+      return context.octokit.issues.createComment(issue)
+    }
+    else { 
+      app.log.debug('...sender is a bot')
+      return null
+    }
   })
-
-  executeHealthChecks(app, app.context, config)
-
 }
+
+// ---------------------------------------------------------------------------
+// Utility functions
+// ---------------------------------------------------------------------------
 
 /**
  * @description Run all the health checks, listed in the config yaml file.
@@ -103,33 +126,40 @@ module.exports = (app, { getRouter }) => {
  * @param {*} app 
  * @param {*} context 
  * @param {*} config 
+ * @returns report (JSON)
  */
 function executeHealthChecks(app, context, config) {
   app.log.info('executeHealthChecks')
+
+  const report = new Report();
+
   // Loop through each health check in the config object
   config.health_checks.forEach(check => {
 
     // look up the health check module in the healthChecks map
     const healthCheckModule = healthChecksModules[check.name]
 
-    // collect the health check results
-    let report = null
-
     // if the health check module is found
     if (healthCheckModule) {
       app.log.info("...healthCheckModule: " + util.inspect(healthCheckModule))
       // run the health check and measure the execution time
-      console.time(healthCheckModule)
-      const result = healthCheckModule.execute(context, check.params)
-      console.timeEnd(healthCheckModule)
+      const start = process.hrtime.bigint();
+      let result = healthCheckModule.execute(context, check.params)
+      const end = process.hrtime.bigint();
+      const elapsed = Number(end - start) / 1000000
+      // add the elapsed time to the result JSON
+      result.elapsed = elapsed + ' ms'
+
       // add the result to the report
-      report += { "name": check.name, "result": result }
+      report.add(result)
 
     }
     else { // if the health check module is not found
       app.log.error("healthCheck not found: " + check.name)
     }
 
-    app.log.info("...report: " + util.inspect(report))
   });
+
+  // return the report
+  return report
 }

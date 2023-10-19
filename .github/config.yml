@@ -30,3 +30,19 @@ health_checks:
       branch: "" # optional: default is "main"
       description: "" 
 
+reports:
+  - name: "issue"
+    description: "Markdown report"
+    type: "markdown"
+    params:
+      path: "report.md" # optional: default is "report.md"
+  - name: "db"
+    description: "JSON report"
+    type: "json"
+    params:
+      path: "report.json" # optional: default is "report.json"
+  - name: "csv"
+    description: "CSV report"
+    type: "csv"
+    params:
+      path: "report.csv" # optional: default is "report.csv"

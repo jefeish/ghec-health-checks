@@ -1,6 +1,8 @@
 /**
- * This code maps the 'HealthCeck' classes by name 
- * 
+ * @description This module contains the functions that are used to initialize
+ *             the application.
+ *             - registerHealthCheckModules: load all health check modules from the HealthChecks/ folder
+ *             - loadConfig: load App configurations from .github/config.yml  
  * 
  */
 
@@ -8,8 +10,52 @@ const fs = require('fs')
 const yaml = require('js-yaml')
 const util = require('util')
 
+
 /**
- * @description:
+ * @description 
+ * @param {*} app
+ * @returns json array of health check modules
+ * 
+ */
+exports.readHealthCheckFiles = (app, modulesPath) => {
+  app.log.info('readHealthCheckFiles')
+  const healthCheckModules = readHealthCheckModules(app, modulesPath)
+  app.log.info('readHealthCheckFiles: '+ healthCheckModules)
+  app.log.info('readHealthCheckFiles(json): '+ JSON.stringify(healthCheckModules))
+  return healthCheckModules;
+}
+
+/**
+ * 
+ * @param {*} app 
+ * @param {*} modulesPath 
+ * @returns 
+ */
+function readHealthCheckModules(app, modulesPath) {
+  app.log.info('readHealthCheckModules')
+
+  // An array to store the names of the health check files
+  let healthCheckFiles = ['test']
+
+  try {
+    // initial read of the 'HealthChecks/' folder
+    healthCheckFiles = fs.readdirSync(modulesPath).filter(file => {
+      return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
+    })
+
+    app.log.debug("healthCheckModules: " + util.inspect(healthCheckFiles))
+
+  } catch (err) {
+    app.log.error(err)
+  }
+
+  app.log.info('readHealthCheckModules - complete')
+ 
+  return healthCheckFiles
+}
+
+/**
+ * @description 
  * @param {*} app
  * @returns
  * 
@@ -18,17 +64,18 @@ exports.registerHealthCheckModules = (app, modulesPath) => {
   app.log.info('registerHealthCheckModules')
 
   // An array to store the names of the health check files
-  let healthCheckFiles = []
+  // let healthCheckFiles = []
+  const healthCheckFiles = readHealthCheckModules(app, modulesPath)
   // A Map to store associated HealthCheck module-names and objects
   let healthCheckModules = new Map()
 
   try {
-    // initial read of the 'HealthChecks/' folder
-    healthCheckFiles = fs.readdirSync(modulesPath).filter(file => {
-      return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
-    })
+    // // initial read of the 'HealthChecks/' folder
+    // healthCheckFiles = fs.readdirSync(modulesPath).filter(file => {
+    //   return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
+    // })
 
-    app.log.debug("healthCheckFiles: " + util.inspect(healthCheckFiles))
+    // app.log.debug("healthCheckFiles: " + util.inspect(healthCheckFiles))
 
     // map the module names to objects
     healthCheckModules = mapModuleNamesToObjects(app, healthCheckFiles)
@@ -43,7 +90,7 @@ exports.registerHealthCheckModules = (app, modulesPath) => {
 }
 
 /**
- * 
+ * @description 
  * @param {*} healthCheckFiles 
  * @returns 
  */
@@ -62,12 +109,29 @@ function mapModuleNamesToObjects(app, healthCheckFiles) {
     const moduleNameRegex = /(?<=\bmodule\.exports\s*=\s*)\w+/;
     const moduleName = fileContents.match(moduleNameRegex);
 
-    // get an instance of the module
-    const cmd = require(process.cwd() + '/src/HealthChecks/' + check)
-    const command = cmd.getInstance()
+    try {
+      // get an instance of the module
+      const cmd = require(process.cwd() + '/src/HealthChecks/' + check)
+      const command = cmd.getInstance()
 
-    // add the module to the healthChecks map
-    healthCheckModules[moduleName] = command
+      // validate the module
+      const result = command.execute(app, 'test')
+
+      // check if the returned result is a JSON object with the correct keys
+      // if not, log the event and skip the module
+      const requiredKeys = ['name', 'description', 'result', 'status'];
+      const hasValidKeys = requiredKeys.every(key => key in result);
+      
+      if (!hasValidKeys) {
+        throw new Error('Invalid result object. Missing one or more required keys. \nRequired Keys: '+ requiredKeys);
+      }
+      else{
+        // add the module to the healthChecks map
+        healthCheckModules[moduleName] = command
+      }
+    } catch (err) {
+      app.log.error('Error loading health check module: ' + check +'\n'+ err +'\nSkipping module')
+    }
   })
 
   // write the item registry to the log
@@ -80,7 +144,7 @@ function mapModuleNamesToObjects(app, healthCheckFiles) {
 }
 
 /**
- * @description:
+ * @description
  * @param {*} app
  * @returns
  * 

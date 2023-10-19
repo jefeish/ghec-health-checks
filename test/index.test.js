@@ -13,7 +13,7 @@ const privateKey = fs.readFileSync(
   "utf-8"
 );
 
-describe("My Probot app", () => {
+describe("Probot app", () => {
   let probot;
 
   beforeEach(() => {

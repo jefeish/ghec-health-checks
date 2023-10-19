@@ -8,10 +8,8 @@
 const Command = require('./common/command.js')
 let instance = null
 
-
 class check_repo_clone extends Command {
   
-
   // eslint-disable-next-line no-useless-constructor
   constructor() {
     super()
@@ -47,9 +45,8 @@ class check_repo_clone extends Command {
 
       // YOUR CODE HERE !
 
-      const fooJson = {
-        
-      }
+      const fooJson = { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
+      
       return fooJson
     } catch (err) {
       context.log(err)

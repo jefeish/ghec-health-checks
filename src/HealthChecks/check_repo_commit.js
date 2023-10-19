@@ -47,9 +47,7 @@ class check_repo_commit extends Command {
 
       // YOUR CODE HERE !
       
-      const fooJson = {
-        
-      }
+      const fooJson = { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
 
       return fooJson
     } catch (err) {

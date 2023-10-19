@@ -2,7 +2,8 @@
 
 # GHEC Health Check App
 
- A GitHub App  to run a set of Health checks against the GitHub platform.
+ A GitHub App  to run a set of Health checks against the GitHub platform API.
+<br><br><br>
 
 ![diagram](docs/images/architecture.svg)
 
@@ -10,13 +11,34 @@
 
 ## Setup
 
-```sh
-# Install dependencies
-npm install
+- REACT App
 
-# Run the bot
-npm start
-```
+    In the REACT App root folder
+
+    ```sh
+    # Install dependencies
+    npm install
+
+    # build the react app
+    npm run build
+    ```
+
+- Probot App root folder
+
+    ```sh
+    # Install dependencies
+    npm install
+    ```
+
+    ```sh
+    # Run the bot
+    npm start
+    ```
+
+- Access the app at `http://localhost:3000` (default)
+- Access the UI at `http://localhost:3000/health-check` (default)
+
+---
 
 ## Docker
 

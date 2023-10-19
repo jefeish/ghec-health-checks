@@ -47,9 +47,7 @@ class check_repo_pr extends Command {
 
       // YOUR CODE HERE !
       
-      const fooJson = {
-        
-      }
+      const fooJson = { "name": "check_repo_pr", "result": "result" }
 
       return fooJson
     } catch (err) {

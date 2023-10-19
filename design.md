@@ -37,16 +37,15 @@ Verifying the operational integrity of the GitHub platform using the GitHub API.
     
     A simple, monolithic health check application is often easier to set up and use than a distributed microservices architecture. It is a more practical choice for teams looking for a quick and efficient solution.
 
-
-
 ---
 
 ## Features
 
-- Dynamically reload Health Check configuration (yaml)
+- **Dynamically reload Health Check configuration** (yaml)
    - Activate or Deactivate health checks at runtime
-- Dynamically load/reload Health Check Modules (.js)
+- **Dynamically load/reload Health Check Modules** (.js)
    - New Health Check Modules can be loaded at runtime, no App restart required
+- **Custom results reporting**, using reporting modules.
 
 ---
 

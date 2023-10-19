@@ -1,0 +1,1 @@
+# Report Adapters for 3rd Party Integration
