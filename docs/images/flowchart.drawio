@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-        <mxGraphModel dx="568" dy="1159" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="414" dy="1023" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="WIyWlLk6GJQsqaUBKTNV-0"/>
                 <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0"/>
@@ -34,7 +34,7 @@
                 <mxCell id="GKBDhjYBTRTlOIrJIfOM-5" value="Create a Module instance" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
                     <mxGeometry x="160" y="320" width="120" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="GKBDhjYBTRTlOIrJIfOM-14" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;rounded=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="WIyWlLk6GJQsqaUBKTNV-6" edge="1" target="8">
+                <mxCell id="GKBDhjYBTRTlOIrJIfOM-14" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;rounded=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="WIyWlLk6GJQsqaUBKTNV-6" target="8" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="220" y="280" as="targetPoint"/>
                         <Array as="points">
@@ -63,10 +63,10 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="GKBDhjYBTRTlOIrJIfOM-7" value="ERROR" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-                    <mxGeometry x="320" y="410" width="120" height="60" as="geometry"/>
+                <mxCell id="GKBDhjYBTRTlOIrJIfOM-7" value="ERROR&lt;br&gt;(Skip Module)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+                    <mxGeometry x="320" y="520" width="120" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="GKBDhjYBTRTlOIrJIfOM-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="GKBDhjYBTRTlOIrJIfOM-8" target="GKBDhjYBTRTlOIrJIfOM-7" edge="1">
+                <mxCell id="GKBDhjYBTRTlOIrJIfOM-9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="GKBDhjYBTRTlOIrJIfOM-8" target="GKBDhjYBTRTlOIrJIfOM-7" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="GKBDhjYBTRTlOIrJIfOM-13" value="No" style="edgeLabel;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="GKBDhjYBTRTlOIrJIfOM-9" vertex="1" connectable="0">
@@ -88,13 +88,13 @@
                 <mxCell id="GKBDhjYBTRTlOIrJIfOM-11" value="Add Module to Map" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
                     <mxGeometry x="160" y="520" width="120" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="0" value="A compliant object must support the execute() method and return set of required JSON object keys" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+                <mxCell id="0" value="A compliant object must support the execute() method and return a set of required JSON object keys" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
                     <mxGeometry x="30" y="410" width="150" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="9" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="8" target="GKBDhjYBTRTlOIrJIfOM-5">
+                <mxCell id="9" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="8" target="GKBDhjYBTRTlOIrJIfOM-5" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="8" value="Iterate over &lt;br&gt;Module list" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=10;fillColor=#f5f5f5;fontColor=#000000;strokeColor=#666666;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+                <mxCell id="8" value="Iterate over &lt;br&gt;Module list" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=10;fillColor=#f5f5f5;fontColor=#000000;strokeColor=#666666;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
                     <mxGeometry x="160" y="240" width="120" height="40" as="geometry"/>
                 </mxCell>
             </root>
