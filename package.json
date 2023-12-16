@@ -23,7 +23,7 @@
     "handlebars": "^4.7.8",
     "jquery": "^3.7.1",
     "nodemon": "^3.0.1",
-    "probot": "^12.2.4",
+    "probot": "^12.3.3",
     "serve-favicon": "^2.5.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
