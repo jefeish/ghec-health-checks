@@ -9,7 +9,7 @@ const ui = require('./ui/appUI.js')
 const Report = require('./report');
 const path = require('path');
 
-let healthChecksModules = new Map()
+// let healthChecksModules = new Map()
 let config = null
 
 /**
@@ -92,7 +92,9 @@ module.exports = (app, { getRouter }) => {
     if (context.payload.sender.type !== 'Bot') {
       app.log.info('...sender is not a bot')
 
+      // execute all registered health checks
       const report = executeHealthChecks(app, app.context, config)
+
       const issue = context.issue(
         {
           owner: context.payload.repository.owner.login,

@@ -61,7 +61,7 @@ function HealthChecks() {
 
   if (error) {
     return (
-      <Box sx={{ borderWidth: 1, borderStyle: 'solid', borderColor: 'lightgrey', p: 2, borderRadius: 5, background: '#ffaaaa', marginBottom: 20, paddingLeft: 20, verticalAlign: 'middle' }}>
+      <Box sx={{ borderWidth: 1, borderStyle: 'solid', borderColor: 'lightgrey', p: 2, borderRadius: 8, background: '#ffaaaa', marginBottom: 20, paddingLeft: 20, verticalAlign: 'middle' }}>
         <Octicon color="red" icon={XCircleFillIcon} size={32} sx={{ mr: 2, paddingLeft: 20, paddingRight: 20 }} />
         Error: {error.message}
       </Box>
@@ -85,7 +85,7 @@ function HealthChecks() {
               key={item.id}
               style={{
                 border: '1px solid #ccc',
-                borderRadius: '5px',
+                borderRadius: '8px',
                 padding: '10px',
                 margin: '5px',
                 display: 'flex',
@@ -97,7 +97,7 @@ function HealthChecks() {
                 <p>{item.description}</p>
               </div>
               {/* Add content for the second column here */}
-              <Button onClick={fetchData} variant="primary" leadingIcon={PencilIcon} sx={{ color: 'white', backgroundColor: 'green', borderRadius: 5, fontWeight: 'bold', marginLeft: 10 }}>
+              <Button onClick={fetchData} variant="primary" leadingIcon={PencilIcon} sx={{ color: 'white', backgroundColor: 'green', borderRadius: 8, fontWeight: 'bold', marginLeft: 10 }}>
                 Edit
               </Button>
             </li>

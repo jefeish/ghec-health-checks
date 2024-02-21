@@ -1,0 +1,23 @@
+{
+    "reports": [
+        {
+            "name": "report1",
+            "description": "report1 description",
+            "result": "",
+            "status": "pass"
+        },
+        {
+            "name": "report2",
+            "description": "report2 description",
+            "result": "",
+            "status": "fail"
+        },
+        {
+            "name": "report3",
+            "description": "report3 description",
+            "result": "",
+            "status": "pass"
+        }
+
+    ]
+}

@@ -1,5 +1,6 @@
 /**
- * @description This module contains the API functions for the application.
+ * @description This module contains the API functions implementation for the 
+ *              application.
  * 
  */
 
@@ -16,8 +17,6 @@ const util = require('util')
  * 
  */
 exports.healthChecks = () => {
-  console.log('api/HealthChecks')
-  
   const modulesPath = 'src/healthChecks/'
   // An array to store the names of the health check files
   let healthCheckFiles = []
@@ -39,6 +38,8 @@ exports.healthChecks = () => {
       // Regex to extract the description from the code 
       const regex = /^[\s\S]*?\* @description\s+(.*)$/m
       const match = regex.exec(code)
+      // string '_' and '.js' from the file name and make it uppercase
+      file = file.replaceAll('_', ' ').replace('.js', '').toUpperCase()
 
       if (match) {
         const description = match[1]
@@ -47,7 +48,6 @@ exports.healthChecks = () => {
           name: file,
           description: description
         })
-
       } else {
         healthCheckInventory.push({
           name: file,
@@ -78,6 +78,40 @@ exports.apiGetConfig = () => {
     const config = yaml.load(fs.readFileSync(configPath, 'utf8'))
     console.log('config: ' + util.inspect(config))
     return config
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+/**
+ * @description Markdown object of the documentation file (docs/README.md)
+ * @returns Markdown
+ * 
+ */
+exports.apiGetDocumentation = () => {
+  console.log('Loading Documentation')
+  // load App documentation from docs/README.md
+  try {
+    const documentation = fs.readFileSync('docs/README.md', 'utf8')
+    console.log('documentation: ' + util.inspect(documentation))
+    return documentation
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+/**
+ * @description
+ * @returns 
+ * 
+ */
+exports.apiGetReports = () => {
+  console.log('Loading Reports')
+ 
+  try {
+    const reports = fs.readFileSync('reports/foo.json', 'utf8')
+    console.log('reports: ' + util.inspect(reports))
+    return JSON.parse(reports)
   } catch (err) {
     console.log(err)
   }
