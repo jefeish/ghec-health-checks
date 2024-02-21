@@ -60,3 +60,38 @@ For more, check out the [Contributing Guide](CONTRIBUTING.md).
 ## License
 
 [ISC](LICENSE) © 2023 Jürgen Efeish
+
+```mermaid
+sequenceDiagram
+    participant main as Main Entrypoint
+    participant init as Init Module
+    participant fs as File System (fs)
+    participant hc as Health Check Modules
+    participant config as Config File
+    participant report as Report Module
+    participant ui as UI Module
+
+    main->>init: loadConfig(app, configPath)
+    init->>fs: fs.readFileSync(configPath, 'utf8')
+    fs-->>init: Return config file content
+    init-->>main: Return config object
+    main->>fs: fs.watch(configPath)
+    Note over main,fs: Watch for changes in config file
+
+    main->>init: registerHealthCheckModules(app, modulesPath)
+    init->>fs: fs.readdirSync(modulesPath)
+    fs-->>init: Return list of health check files
+    init->>hc: require each health check module
+    hc-->>init: Return module instance
+    init-->>main: Return map of health check modules
+    main->>fs: fs.watch(modulesPath)
+    Note over main,fs: Watch for changes in health check modules folder
+
+    main->>ui: Initialize UI
+    ui-->>main: UI started
+
+    main->>report: executeHealthChecks(app, context, config)
+    report->>hc: Execute each health check module
+    hc-->>report: Return result of health check
+    report-->>main: Return report
+    ```
