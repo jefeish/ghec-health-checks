@@ -62,7 +62,7 @@ function Configuration() {
     <div>
       <Pagehead>App Configuration</Pagehead>
       <YamlEditor initialData={initialYamlData} />
-      <MyTable />
+      {/* <MyTable /> */}
     </div>
   );
 }
