@@ -3,6 +3,8 @@
  * 
  */
 
+const reportConverter = require('./healthChecks/reportAdapters/reportConverter.js')
+
 class Report {
     constructor() {
         this.data = [];
@@ -22,17 +24,7 @@ class Report {
      */
     csv() {
         // transform the JSON into a CSV string
-
-        // Get the header
-        const header = Object.keys(this.data[0]).join(',')
-
-        // Get the rows
-        const rows = this.data.map(obj => Object.values(obj).join(','))
-
-        // Combine header and rows
-        const csv = [header, ...rows].join('\n')
-
-        return csv
+        return reportConverter.csvReport(this.data)
     }
 
     /**
@@ -40,20 +32,10 @@ class Report {
      * @returns 
      */
     markdown() {
-        // Get the header
-        const header = Object.keys(this.data[0])
-        const headerRow = header.join(' | ').toUpperCase()
-
-        // Create separator row
-        const separatorRow = header.map(() => '---').join(' | ')
-
-        // Get the rows
-        const rows = this.data.map(obj => Object.values(obj).join(' | '))
-
-        // Combine header, separator and rows
-        const markdownTable = [headerRow, separatorRow, ...rows].join('\n')
-
-        return markdownTable
+        console.log('this.data:'+ this.data)
+        console.log('Report.markdown():'+ reportConverter.markdownReport(this.data))
+        // transform the JSON into a markdown table
+        return reportConverter.markdownReport(this.data)
     }
 
     /**

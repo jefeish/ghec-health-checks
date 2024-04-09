@@ -74,13 +74,32 @@ exports.healthChecks = () => {
 exports.apiGetConfig = () => {
   console.log('Loading Health Check Configuration')
   // load App configurations from .github/config.yml
+  const configPath = '.github/config.yml'
   try {
     const config = yaml.load(fs.readFileSync(configPath, 'utf8'))
-    console.log('config: ' + util.inspect(config))
-    return config
+    // display the configuration file yaml as a string
+    const configString = yaml.dump(config)
+
+    console.log('configYaml: ' + configString)
+    return configString
   } catch (err) {
     console.log(err)
   }
+}
+
+/**
+ * @description Safe the configuration file
+ * 
+ * 
+ */
+exports.apiSaveConfig = (config) => {
+  console.log('Saving Health Check Configuration')
+  // save App configurations to .github/config.yml
+  try {
+    fs.writeFileSync(configPath, yaml.dump(config))
+  } catch (err) {
+    console.log(err)
+  } 
 }
 
 /**

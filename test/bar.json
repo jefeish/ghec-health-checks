@@ -1,0 +1,117 @@
+[
+    {
+      "report": "Nov. 12 2023 - 12:45 am",
+      "checks": [
+        {
+          "name": "CHECK REPO CLONE",
+          "description": "Check if the repo can be cloned, in a timely manner",
+          "result": "Cloning the Repo was successful",
+          "status": "pass"
+        },
+        {
+          "name": "CHECK REPO COMMIT",
+          "description": "Check if the repo can be committed to, in a timely manner",
+          "result": "Creating a commit was successful",
+          "status": "pass"
+        },
+        {
+          "name": "CHECK REPO PR",
+          "description": "Check if the repo can process a PR",
+          "result": "Creating a PR has failed, with the following issue: \"The PR is not valid\"",
+          "status": "fail"
+        }
+      ]
+    },
+    {
+      "report": "Sep. 13 2023 - 12:45 am",
+      "checks": [
+        {
+          "name": "CHECK REPO CLONE",
+          "description": "Check if the repo can be cloned, in a timely manner",
+          "result": "Cloning the Repo was successful",
+          "status": "pass"
+        },
+        {
+          "name": "CHECK REPO COMMIT",
+          "description": "Check if the repo can be committed to, in a timely manner",
+          "result": "Creating a commit was successful",
+          "status": "fail"
+        },
+        {
+          "name": "CHECK REPO PR",
+          "description": "Check if the repo can process a PR",
+          "result": "Creating a PR has failed, with the following issue: \"The PR is not valid\"",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "report": "Sep. 13 2023 - 12:45 am",
+      "checks": [
+        {
+          "name": "CHECK REPO CLONE",
+          "description": "Check if the repo can be cloned, in a timely manner",
+          "result": "Cloning the Repo was successful",
+          "status": "pass"
+        },
+        {
+          "name": "CHECK REPO COMMIT",
+          "description": "Check if the repo can be committed to, in a timely manner",
+          "result": "Creating a commit was successful",
+          "status": "fail"
+        },
+        {
+          "name": "CHECK REPO PR",
+          "description": "Check if the repo can process a PR",
+          "result": "Creating a PR has failed, with the following issue: \"The PR is not valid\"",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "report": "Sep. 13 2023 - 12:45 am",
+      "checks": [
+        {
+          "name": "CHECK REPO CLONE",
+          "description": "Check if the repo can be cloned, in a timely manner",
+          "result": "Cloning the Repo was successful",
+          "status": "pass"
+        },
+        {
+          "name": "CHECK REPO COMMIT",
+          "description": "Check if the repo can be committed to, in a timely manner",
+          "result": "Creating a commit was successful",
+          "status": "fail"
+        },
+        {
+          "name": "CHECK REPO PR",
+          "description": "Check if the repo can process a PR",
+          "result": "Creating a PR has failed, with the following issue: \"The PR is not valid\"",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "report": "Sep. 13 2023 - 12:45 am",
+      "checks": [
+        {
+          "name": "CHECK REPO CLONE",
+          "description": "Check if the repo can be cloned, in a timely manner",
+          "result": "Cloning the Repo was successful",
+          "status": "pass"
+        },
+        {
+          "name": "CHECK REPO COMMIT",
+          "description": "Check if the repo can be committed to, in a timely manner",
+          "result": "Creating a commit was successful",
+          "status": "fail"
+        },
+        {
+          "name": "CHECK REPO PR",
+          "description": "Check if the repo can process a PR",
+          "result": "Creating a PR has failed, with the following issue: \"The PR is not valid\"",
+          "status": "pass"
+        }
+      ]
+    }
+  ]

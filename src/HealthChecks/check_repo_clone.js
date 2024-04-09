@@ -1,11 +1,12 @@
 /**
- * @description Event Handler Class (TEMPLATE).
- * @param
- * PLEASE REPLACE ALL `change this!` MARKERS WITH YOUR OWN CODE 
- * (including this one)
+ * @description Check to verify that the repository can been cloned successfully
+ * @param repo - the repository to check
+ * @returns
  */
 
+const { config } = require('process')
 const Command = require('./common/command.js')
+const util = require('util')
 let instance = null
 
 class check_repo_clone extends Command {
@@ -33,23 +34,52 @@ class check_repo_clone extends Command {
    * @param {*} context 
    * @param {*} data 
    */
-  execute(context, params) {
+  async execute(context, params) {
+
+    console.log('check_repo_clone.execute()')
+    let checkResult = { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
 
     try {
 
       if (typeof params == 'undefined') {
         params = 'NA'
       }
+     
+      // if the context is not defined, return an error
+      if (context.octokit !== undefined) {
 
-      console.log('check_repo_clone.execute() '+ params)
-
-      // YOUR CODE HERE !
-
-      const fooJson = { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
-      
-      return fooJson
+        const response = await context.octokit.repos.get({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name
+        });
+             
+        // console.log('response: ', response)
+        // if the call was successful, return the result
+        if (response.status == 200) {
+          checkResult.result = 'Success'
+          checkResult.status = 'Pass'
+          checkResult.result = 'Repository was cloned successfully'
+          checkResult.description = params.description
+          return checkResult
+        }
+        else {
+          checkResult.result = 'Failure'
+          checkResult.status = 'Fail'
+          checkResult.result = 'Repository cloning failure'
+          checkResult.description = params.description
+          return checkResult
+        }
+      }
+      else {
+        console.log('check_repo_clone: context is not defined')
+        checkResult.result = 'Failure'
+        checkResult.status = 'Fail'
+        checkResult.result = 'context is not defined'
+        checkResult.description = params.description
+        return checkResult
+      }
     } catch (err) {
-      context.log(err)
+      console.log(err)
       return -1
     }
   }

@@ -2,7 +2,7 @@
 
  A GitHub App to run a set of Health checks against the GitHub platform API.
 
-![diagram](images/flow-overview.svg)
+![diagram](images/architecture.svg)
 
 ## Some notes on the Application Scope
 

@@ -38,7 +38,6 @@ function Home() {
         return response.json();
       })
       .then((data) => {
-        console.log('data: ' + data)
         console.log('data inspect: ' + util.inspect(data))
         setData(data); // Set the retrieved data in the state
         setLoading(false);
@@ -52,6 +51,8 @@ function Home() {
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
   }, []);
+
+  console.log('Data:', data); // Log the value of data
 
   if (loading) {
     return (
@@ -198,8 +199,9 @@ function Home() {
     maxWidth: '200px'
   };
 
+  // ReportItem component; renders a report item with its checks in a table format. 
+  // The table has 4 columns: Status, Check Name, Description, Result, and Status  
   const ReportItem = ({ report, checks }) => (
-
     <div key={report}>
       <table style={tableStyle}>
         <thead>
@@ -230,15 +232,16 @@ function Home() {
     </div>
   );
 
-  const ReportsList = ({ data }) => (
-    <div>
-      {data.map((item, index) => (
-        <div key={index}>
-          <ReportItem report={item.report} checks={item.checks} />
-        </div>
-      ))}
-    </div>
-  );
+  // const ReportsList = ({ data }) => (
+  //   <div>
+  //     {data.map((item, index) => (
+  //       <div key={index}>
+  //         <ReportItem report={item.report} checks={item.checks} />
+  //       </div>
+  //     ))}
+  //   </div>
+  // );
+
   return (
     <div>
       <Pagehead>
@@ -258,13 +261,7 @@ function Home() {
           padding: 0
         }}
       >
-        <div style={{ textAlign: 'left', borderBottom: '1px', borderColor: 'lightgrey' }}>
-          {jsonData.map((item, index) => (
-
-            <CollapsibleSegment title={item.report} content={<ReportItem report={item.report} checks={item.checks} />} />
-
-          ))}
-        </div>
+        <ReportsList data={data} />
       </Box>
     </div>
   )

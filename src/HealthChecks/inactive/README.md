@@ -1,9 +1,13 @@
 # Inactive Health Check Modules
 
+This folder should contain `healthChecks` code that the App does not currently use.
+
 To activate a Modules:
 
 1. Copy it to the `HealthChecks/` folder
-2. Create a `config.yml` **HealthChecks** entry
+    - `./check_repo.js` -> to `../healthChecks/`
+2. Create a `config.yml` **HealthChecks** entry 
+   - The `name:` has to be the name of the file, without the extension.
 
     Example:
     ```yaml

@@ -1,1 +1,1 @@
-# Report Adapters for 3rd Party Integration
+# Report Adapters for report Integration

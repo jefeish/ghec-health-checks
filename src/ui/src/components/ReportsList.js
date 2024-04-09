@@ -5,62 +5,54 @@ import {
 } from '@primer/react'
 
 import {
-  CheckIcon,
   CheckCircleFillIcon,
   XCircleFillIcon,
-  XIcon,
 } from '@primer/octicons-react'
 
-// --------------------------------------------------------
-// add some styling to the table
-// --------------------------------------------------------
 const tableStyle = {
   borderCollapse: 'collapse',
   width: '100%'
 };
 
 const colmnStyle = {
-  paddingLeft : '18px',
+  paddingLeft: '18px',
   textAlign: 'left',
   maxWidth: '200px'
 };
 
-/**
- * @description
- * @param {*} param0 
- * @returns 
- */
 function ReportsList({ data }) {
-
-  console.log('ReportsList: '+ data)
-
   try {
     return (
       <div>
-        <table style={tableStyle}>
-          <thead>
-            <tr style={{ borderTopLeftRadius: 5,  borderTopRightRadius: 5, border: '1px solid lightgrey', background: '#dddddd', padding: '20px', height: '50px' }}>
-              <th style={{ paddingLeft: 20, paddingRight: 20 }}>Status</th>
-              <th style={colmnStyle}>Name</th>
-              <th style={colmnStyle}>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.reports.map((report, index) => (
-              <tr key={index} style={{ borderBottom: '1px solid lightgrey', height: '50px' }}>
-                <td style={{ width: '1%', paddingRight: 20}}>
-                  {report.status === 'pass' ? (
-                    <Octicon icon={CheckCircleFillIcon} size={16} sx={{ color: 'green' }} />
-                  ) : (
-                    <Octicon icon={XCircleFillIcon} size={16} sx={{ color: 'red' }} />
-                  )}
-                </td>
-                <td style={colmnStyle}>{report.name}</td>
-                <td style={colmnStyle}>{report.description}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {data.map((report, index) => (
+          <div key={index}>
+            <h3>{report.report}</h3>
+            <table style={tableStyle}>
+              <thead>
+                <tr style={{ borderTopLeftRadius: 5, borderTopRightRadius: 5, border: '1px solid lightgrey', background: '#dddddd', padding: '20px', height: '50px' }}>
+                  <th style={{ paddingLeft: 20, paddingRight: 20 }}>Status</th>
+                  <th style={colmnStyle}>Name</th>
+                  <th style={colmnStyle}>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.checks.map((check, checkIndex) => (
+                  <tr key={checkIndex} style={{ borderBottom: '1px solid lightgrey', height: '50px' }}>
+                    <td style={{ width: '1%', paddingRight: 20 }}>
+                      {check.status === 'pass' ? (
+                        <Octicon icon={CheckCircleFillIcon} size={16} sx={{ color: 'green' }} />
+                      ) : (
+                        <Octicon icon={XCircleFillIcon} size={16} sx={{ color: 'red' }} />
+                      )}
+                    </td>
+                    <td style={colmnStyle}>{check.name}</td>
+                    <td style={colmnStyle}>{check.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
       </div>
     );
   } catch (error) {

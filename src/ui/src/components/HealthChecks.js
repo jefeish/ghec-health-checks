@@ -98,7 +98,7 @@ function HealthChecks() {
               </div>
               {/* Add content for the second column here */}
               <Button onClick={fetchData} variant="primary" leadingIcon={PencilIcon} sx={{ color: 'white', backgroundColor: 'green', borderRadius: 8, fontWeight: 'bold', marginLeft: 10 }}>
-                Edit
+                Active
               </Button>
             </li>
           ))}

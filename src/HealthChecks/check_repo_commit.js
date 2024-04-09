@@ -1,8 +1,6 @@
 /**
- * @description Event Handler Class (TEMPLATE).
+ * @description Check to verify that commits can be made to the repository
  * @param
- * PLEASE REPLACE ALL `change this!` MARKERS WITH YOUR OWN CODE 
- * (including this one)
  */
 
 const Command = require('./common/command.js')
@@ -35,25 +33,122 @@ class check_repo_commit extends Command {
    * @param {*} context 
    * @param {*} data 
    */
-  execute(context, params) {
-
+  async execute(context, params) {
+    
+    console.log('check_repo_commit.execute()')
+    let checkResult = { "name": "check_repo_commit", "description": "test", "result": "result", "status": "status" }
+    // print current working directory
+    console.log('Current working directory: ', process.cwd());
+    
     try {
 
       if (typeof params == 'undefined') {
         params = 'NA'
       }
+     
+      // if the context is not defined, return an error
+      if (context.octokit !== undefined) {
 
-      console.log('check_repo_commit.execute()')
-
-      // YOUR CODE HERE !
+        // const result = context.octokit.git.createCommit({
+        //   owner: context.payload.repository.owner.login,
+        //   repo: context.payload.repository.name,
+        //   message: 'test commit',
+        //   tree: context.payload.repository.tree,
+        //   'author.name': context.payload.repository.owner.name,
+        //   'author.email': context.payload.repository.owner.email,
+        // })
       
-      const fooJson = { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
-
-      return fooJson
+        // Example usage
+        const gitHubCommit = new GitHubCommit( context, context.payload.repository.owner.login, context.payload.repository.name, 'main');
+        gitHubCommit.createCommit('Commit message', 'Hello, world!');
+        
+        // if the call was successful, return the result
+        if (response.status == 200) {
+          checkResult.result = 'Success'
+          checkResult.status = 'Pass'
+          checkResult.result = 'Repository was cloned successfully'
+          checkResult.description = params.description
+          return checkResult
+        }
+        else {
+          checkResult.result = 'Failure'
+          checkResult.status = 'Fail'
+          checkResult.result = 'Repository cloning failure'
+          checkResult.description = params.description
+          return checkResult
+        }
+      }
+      else {
+        console.log('check_repo_commit: context is not defined')
+        checkResult.result = 'Failure'
+        checkResult.status = 'Fail'
+        checkResult.result = 'Repository cloning failure'
+        checkResult.description = params.description
+        return checkResult
+      }
     } catch (err) {
-      context.log(err)
+      console.log(err)
       return -1
     }
+  }
+}
+
+class GitHubCommit {
+  constructor(context, owner, repo, branch) {
+    this.owner = owner;
+    this.repo = repo;
+    this.branch = branch;
+    this.context = context;
+  }
+
+  async getLatestCommitSHA() {
+    const { data } = await this.context.octokit.repos.getBranch({
+      owner: this.owner,
+      repo: this.repo,
+      branch: this.branch
+    });
+    return data.commit.sha;
+  }
+
+  async createCommit(message, content) {
+    const latestCommitSHA = await this.getLatestCommitSHA();
+
+    // create a date timestamp string
+    const date = new Date();
+    const timestamp = date.toISOString();
+    // print current working directory
+    console.log('Current working directory: ', process.cwd());
+
+    const { data: tree } = await this.context.octokit.git.createTree({
+      owner: this.owner,
+      repo: this.repo,
+      base_tree: latestCommitSHA,
+      tree: [
+        {
+          path: './test/test.txt',
+          mode: '100644',
+          type: 'blob',
+          content: timestamp
+        }
+      ]
+    });
+
+    const { data: commit } = await this.context.octokit.git.createCommit({
+      owner: this.owner,
+      repo: this.repo,
+      message,
+      tree: tree.sha,
+      parents: [latestCommitSHA]
+    });
+
+    await this.context.octokit.git.updateRef({
+      owner: this.owner,
+      repo: this.repo,
+      ref: `heads/${this.branch}`,
+      sha: commit.sha
+    });
+
+    console.log('Commit created successfully!');
   }
 }
 
