@@ -51,7 +51,7 @@ class check_repo_pr_close extends Command {
       
       }
       else {
-        console.log('context is not defined')
+        console.log('WARNING - check_repo_pr_close: context is not defined')
       }
       return checkResult
     } catch (err) {

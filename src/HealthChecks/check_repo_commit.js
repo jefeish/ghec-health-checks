@@ -5,7 +5,7 @@
 
 const Command = require('./common/command.js')
 let instance = null
-
+let response = {}
 
 class check_repo_commit extends Command {
   
@@ -37,8 +37,8 @@ class check_repo_commit extends Command {
     
     console.log('check_repo_commit.execute()')
     let checkResult = { "name": "check_repo_commit", "description": "test", "result": "result", "status": "status" }
-    // print current working directory
-    console.log('Current working directory: ', process.cwd());
+    // Debug: print current working directory
+    // console.log('Current working directory: ', process.cwd());
     
     try {
 
@@ -59,8 +59,8 @@ class check_repo_commit extends Command {
         // })
       
         // Example usage
-        const gitHubCommit = new GitHubCommit( context, context.payload.repository.owner.login, context.payload.repository.name, 'main');
-        gitHubCommit.createCommit('Commit message', 'Hello, world!');
+        // const gitHubCommit = new GitHubCommit( context, context.payload.repository.owner.login, context.payload.repository.name, 'main');
+        // gitHubCommit.createCommit('Commit message', 'Hello, world!');
         
         // if the call was successful, return the result
         if (response.status == 200) {
@@ -79,7 +79,7 @@ class check_repo_commit extends Command {
         }
       }
       else {
-        console.log('check_repo_commit: context is not defined')
+        console.log('WARNING - check_repo_commit: context is not defined')
         checkResult.result = 'Failure'
         checkResult.status = 'Fail'
         checkResult.result = 'Repository cloning failure'
@@ -88,7 +88,12 @@ class check_repo_commit extends Command {
       }
     } catch (err) {
       console.log(err)
-      return -1
+      console.log('WARNING - check_repo_commit: context is not defined')
+      checkResult.result = 'Failure'
+      checkResult.status = 'Fail'
+      checkResult.result = 'an error occurred while cloning the repository: ' + err.message
+      checkResult.description = checkConfig.params.description
+      return checkResult
     }
   }
 }

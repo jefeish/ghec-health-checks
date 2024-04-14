@@ -10,41 +10,51 @@ let instance = null
 
 class markdownReportIssue extends Command {
 
-    // eslint-disable-next-line no-useless-constructor
-    constructor() {
-        super()
+  // eslint-disable-next-line no-useless-constructor
+  constructor() {
+    super()
+  }
+
+  /**
+   * Singleton pattern
+   */
+  static getInstance() {
+    if (!instance) {
+      instance = new markdownReportIssue()
     }
 
-    /**
-     * Singleton pattern
-     */
-    static getInstance() {
-        if (!instance) {
-            instance = new markdownReportIssue()
-        }
+    return instance
+  }
 
-        return instance
-    }
-
-    /**
-     * @description Main entry point for invocation from client
-     * 
-     * @param {*} context 
-     * @param {*} data 
-     */
+  /**
+   * @description Main entry point for invocation from client
+   * 
+   * @param {*} context 
+   * @param {*} data 
+   */
   async execute(context, config, jsonData) {
-      console.log('markdownReportIssue:config: ', config)
-    
-      const issue = context.issue(
-        {
-          owner: context.payload.repository.owner.login,
-          repo: context.payload.repository.name,
-          title: 'Health check report',
-          body: '# Health Check Report:\n\n' + markdownReport(jsonData)
-        }
-      )
-      return context.octokit.issues.createComment(issue)
-    }
+    console.log('....markdownReportIssue:config: ', config)
+    // const issueComment = markdownReport(jsonData)
+    // console.log('markdownReportIssue:jsonData: >' + issueComment + '<')
+
+    const issueLabels = await context.octokit.issues.addLabels({
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+      issue_number: context.payload.issue.number,
+      labels: ['invalid']
+    })
+
+    console.log('\n\n\n>>>>>>>>>>>>>>>>>>            markdownReportIssue:issueLabels: ', issueLabels + '\n\n\n')
+
+    const issueComment = await context.octokit.issues.createComment({
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+      issue_number: context.payload.issue.number,
+      body: "issueComment"
+    })
+
+    console.log('markdownReportIssue:issueComment: ', issueComment)
+  }
 }
 
 module.exports = markdownReportIssue;

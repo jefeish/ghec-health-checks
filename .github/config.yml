@@ -5,9 +5,8 @@ health_checks:
     severity: "critical"
     message: "This is a custom message"
     params:
-      repo: "" # required: repository name
+      repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
       branch: "" # optional: default is "main"
-      description: "simple test" 
 
   - name: "check_repo_commit"
     description: standard repository checks (clone, push, PR)
@@ -17,7 +16,6 @@ health_checks:
     params:
       repo: "" # required: repository name
       branch: "" # optional: default is "main"
-      description: "" 
 
   - name: "check_repo_pr_open"
     description: standard repository checks (clone, push, PR)
@@ -27,7 +25,6 @@ health_checks:
     params:
       repo: "" # required: repository name
       branch: "" # optional: default is "main"
-      description: ""
 
   - name: "check_repo_pr_close"
     description: standard repository checks (clone, push, PR)
@@ -37,7 +34,6 @@ health_checks:
     params:
       repo: "" # required: repository name
       branch: "" # optional: default is "main"
-      description: "" 
 
 reports:
   - name: "markdownReportIssue"

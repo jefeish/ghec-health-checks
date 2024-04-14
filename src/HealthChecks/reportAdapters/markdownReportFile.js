@@ -35,7 +35,7 @@ class markdownReportFile extends Command {
    * @param {*} data 
    */
   async execute(context, config, jsonData) {
-    console.log('markdownReportFile:config: ', config)
+    // console.log('markdownReportFile:config: ', config)
 
     const markdown = markdownReport(jsonData);
     const outputFilePath = config.params.path;

@@ -33,7 +33,7 @@ const util = require('util')
  * @returns 
  */
 function readHealthCheckModules(app, modulesPath) {
-  app.log.info('readHealthCheckModules: read the health check modules from the HealthChecks/ folder')
+  app.log.debug('readHealthCheckModules: read the health check modules from the HealthChecks/ folder')
 
   // An array to store the names of the health check files
   let healthCheckFiles = ['test']
@@ -50,8 +50,8 @@ function readHealthCheckModules(app, modulesPath) {
     app.log.error(err)
   }
 
-  app.log.info('readHealthCheckModules: complete')
-  app.log.info("readHealthCheckModules (files): " + util.inspect(healthCheckFiles))
+  app.log.debug('readHealthCheckModules: complete')
+  app.log.info("Available Health Check Modules (files): " + util.inspect(healthCheckFiles))
  
   return healthCheckFiles
 }
@@ -88,13 +88,12 @@ exports.registerHealthCheckModules = async (app, modulesPath) => {
  */
 async function mapModuleNamesToObjects(app, healthCheckFiles) {
   // A Map to store associated HealthCheck module-names and objects
-  app.log.info('mapModuleNamesToObjects: Map the module name to the actual object')
+  app.log.debug('mapModuleNamesToObjects: Map the module name to the actual object')
   let healthCheckModules = new Map()
 
   // Create a `healthChecks` map that associates module names to command objects.
   for (const check of healthCheckFiles) {
-  // healthCheckFiles.forEach(check => {
-    // open the file in 'check' and get the module
+    app.log.info("Register the  Health-Check modules")
     const filePath = './src/HealthChecks/' + check
     app.log.debug("filePath: " + filePath)
     const fileContents = fs.readFileSync(filePath, 'utf8');
@@ -121,7 +120,7 @@ async function mapModuleNamesToObjects(app, healthCheckFiles) {
         throw new Error('Invalid result object. Missing one or more required keys. \nRequired Keys: '+ requiredKeys);
       }
       else {
-        app.log.info('Module is valid: healthCheckModules['+moduleName+'] : '+ util.inspect(command))
+        app.log.debug('Module is valid: healthCheckModules['+moduleName+'] : '+ util.inspect(command))
         // add the module to the healthChecks map
         healthCheckModules[moduleName] = command
       }
@@ -130,15 +129,14 @@ async function mapModuleNamesToObjects(app, healthCheckFiles) {
     }
   }
 
-  app.log.info('mapModuleNamesToObjects: healthCheckModules '+ util.inspect(healthCheckModules))
+  app.log.debug('mapModuleNamesToObjects: healthCheckModules '+ util.inspect(healthCheckModules))
   // write the item registry to the log
   if (healthCheckModules) {
     Object.keys(healthCheckModules).forEach(item => {
-      app.log.info("healthCheckModules: " + item + ', ' + util.inspect(healthCheckModules[item]))
+      app.log.debug("healthCheckModules: " + item + ', ' + util.inspect(healthCheckModules[item]))
     })
 
-    app.log.info('healthCheckModules: '+ JSON.stringify(healthCheckModules))
-    app.log.info('mapModuleNamesToObjects: complete')  
+    app.log.debug('mapModuleNamesToObjects: complete')  
     return healthCheckModules
   }
   else {

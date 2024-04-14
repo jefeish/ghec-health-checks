@@ -35,7 +35,7 @@ class checksTemplate extends Command {
    * @param {*} context 
    * @param {*} data 
    */
-  execute(context, params) {
+  async execute(context, params) {
 
     try {
 

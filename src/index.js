@@ -6,9 +6,6 @@ const init = require('./init.js')
 const util = require('util')
 const fs = require('fs');
 const ui = require('./ui/appUI.js')
-// const Report = require('./report');
-const path = require('path');
-const { markdownReport } = require('./healthChecks/reportAdapters/reportConverter.js');
 
 // let healthChecksModules = new Map()
 let config = null
@@ -57,7 +54,7 @@ module.exports = (app, { getRouter }) => {
   });
 
  
-  function runReports(context, config, jsonData) {
+  async function runReports(context, config, jsonData) {
     // execute all registered reports 
     // app.log.info('runReports:config.reports: ' + util.inspect(config.reports))
 
@@ -65,7 +62,7 @@ module.exports = (app, { getRouter }) => {
       let report = config.reports[i];
       // app.log.info('runReports:report['+report.name+']: ' + util.inspect(report))
       const reportModule = require('./healthChecks/reportAdapters/' + report.name)
-      const reportInstance = new reportModule() 
+      const reportInstance = reportModule.getInstance()
 
       const reportConfig = config.reports.find(item => item.name === report.name);
 
@@ -123,8 +120,11 @@ module.exports = (app, { getRouter }) => {
   app.on('issues.opened', async context => {
     app.log.info('issues.opened')
 
-    // if the Issue description contains the keyword '/status'
-    if (context.payload.issue.body.includes('/status')) {
+    // regular expression to make sure the comment starts with '/status', 
+    // as a single word including newlines
+    const regex = new RegExp('^/status\\b', 'm')
+    
+    if(regex.test(context.payload.comment.body)) {
       app.log.info('...issue created')
       app.log.info('...issue body contains /status')
 
@@ -165,27 +165,28 @@ module.exports = (app, { getRouter }) => {
     app.log.info('...issue comment created')
     app.log.info('...issue comment body: ' + context.payload.comment.body)
 
-    if (context.payload.comment.body === '/status') {
+    // regular expression to make sure the comment starts with '/status', 
+    // as a single word including newlines
+    const regex = new RegExp('^/status\\b', 'm')
 
+    if(regex.test(context.payload.comment.body)) {
       // prevent the bot from triggering itself
       if (context.payload.sender.type !== 'Bot') {
         app.log.info('...sender is not a bot')
+        app.log.info('...creating a comment on the issue ')
 
+        await context.octokit.issues.createComment({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          issue_number: context.payload.issue.number,
+          body: 'Running health checks...'
+        })
+      
         // execute all registered health checks
         const reportCollection = await executeHealthChecks(app, context, config)
 
         runReports(context, config, reportCollection)
         
-        // const issue = context.issue(
-        //   {
-        //     owner: context.payload.repository.owner.login,
-        //     repo: context.payload.repository.name,
-        //     title: 'Health check report',
-        //     body: '# Health Check Report:\n\n' + report.markdown()
-        //   }
-        // )
-
-        // return context.octokit.issues.createComment(issue)
       }
       else {
         app.log.debug('...sender is a bot')
@@ -229,8 +230,16 @@ async function executeHealthChecks(app, context, config) {
     const command = cmd.getInstance()
     // run the health check and measure the execution time
     const start = process.hrtime.bigint();
-    app.log.info('Executing health check: ' + check.name)
+    app.log.info('                                                    Executing health check: ' + check.name)
 
+    // DEBUG: create a comment on the issue to indicate that the health check is running
+    // await context.octokit.issues.createComment({
+    //   owner: context.payload.repository.owner.login,
+    //   repo: context.payload.repository.name,
+    //   issue_number: context.payload.issue.number,
+    //   body: "Running health check: " + check.name 
+    // })
+    
     result = await command.execute(context, check)
     // check if the result is of the format, { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
     // if not, then add the name and description to the result with the status 'error' and the description 'invalid result format'
@@ -248,12 +257,26 @@ async function executeHealthChecks(app, context, config) {
     reportCollection.push(result)
   };
 
-  const { markdownReport, csvReport, jsonReport } = require('./healthChecks/reportAdapters/reportConverter')
-  app.log.info('reportCollection MD: ' + markdownReport(reportCollection))
-  app.log.info('reportCollection CSV: ' + csvReport(reportCollection))
-  app.log.info('reportCollection JSON: ' + jsonReport(reportCollection))
+  // DEBUG: create a comment on the issue, reporting the health check results
+  const { markdownReport } = require('./healthChecks/reportAdapters/reportConverter')
 
-  console.log('reportCollection: ' + util.inspect(reportCollection))
+  await context.octokit.issues.createComment({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
+    issue_number: context.payload.issue.number,
+    body: markdownReport(reportCollection)
+  })
+  console.log('\n\n\n>>>>>>>>>>>>>>>>>                             reportCollection: ' + util.inspect(reportCollection))
+
+  // const issueLabels = await context.octokit.issues.addLabels(
+  //   {
+  //       owner: context.payload.repository.owner.login,
+  //       repo: context.payload.repository.name,
+  //       issue_number: context.payload.issue.number,
+  //       labels: ['documentation']
+  //   })
+  // console.log('>>>>>>>>>>>>>>>>>>>>>>                              issueLabels: ' + util.inspect(issueLabels))
+
   // return the report
   return reportCollection
 }

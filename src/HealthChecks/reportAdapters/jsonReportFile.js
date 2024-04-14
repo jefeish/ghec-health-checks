@@ -37,7 +37,6 @@ class jsonReportFile extends Command {
         console.log('jsonReportFile:config: ', config)
 
         const json = JSON.stringify(jsonReport(jsonData), null, 2);
-        console.log('jsonReportFile:json: ', json)
         const outputFilePath = config.params.path;
         fs.writeFileSync(outputFilePath, json);
 

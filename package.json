@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "dev": "nodemon --exec \"npm start\"",
-    "start": "PORT=2001 probot run ./src/index.js",
+    "start": "DEBUG=@octokit/* PORT=2001 probot run ./src/index.js",
     "test": "jest",
     "build": "react-scripts build",
     "eject": "react-scripts eject"
