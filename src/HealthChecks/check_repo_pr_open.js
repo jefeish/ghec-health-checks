@@ -1,5 +1,5 @@
 /**
- * @description Check to verify that the repository PR has been created
+ * @description Event Handler Class (TEMPLATE).
  * @param
  */
 
@@ -9,7 +9,6 @@ let instance = null
 
 class check_repo_pr_open extends Command {
   
-
   // eslint-disable-next-line no-useless-constructor
   constructor() {
     super()
@@ -21,7 +20,6 @@ class check_repo_pr_open extends Command {
   static getInstance() {
     if (!instance) {
       instance = new check_repo_pr_open()
-                 
     }
 
     return instance
@@ -33,34 +31,51 @@ class check_repo_pr_open extends Command {
    * @param {*} context 
    * @param {*} data 
    */
-  async execute(context, params) {
+  async execute(context, checkConfig) {
 
-    console.log('check_repo_pr_open.execute()')
-    let checkResult = { "name": "check_repo_pr", "description": "test", "result": "result", "status": "status" }
+    console.log(checkConfig.name +'.execute()')
+    let checkResult = {
+      "name": checkConfig.name,
+      "description": checkConfig.description,
+      "result": "result",
+      "status": "status"
+    }
 
     try {
 
-      if (typeof params == 'undefined') {
-        params = 'NA'
+      if (typeof checkConfig == 'undefined') {
+          checkResult.name = 'checkConfig is not defined',
+          checkResult.status = 'fail',
+          checkResult.result = 'checkConfig is not defined',
+          checkResult.description = 'checkConfig is not defined'
+          return checkResult
       }
-     
-      // if the context is not defined, return an error
-      if (context.octokit !== undefined) {
 
-        // YOUR CODE HERE !
+      // if the context is not defined or the checkConfig is not defined, return an error
+      if (context.octokit !== undefined && checkConfig.params !== undefined) {
       
+        // ------------------------------------------------
+        // YOUR CODE HERE !
+        // ------------------------------------------------
+
+        return checkResult
       }
       else {
-        console.log('WARNING: check_repo_pr_open: context is not defined')
+        console.log('WARNING - '+ checkConfig.name +': context is not defined')
+        checkResult.status = 'fail'
+        checkResult.result = 'context is not defined'
+        checkResult.description = checkConfig.description
+        return checkResult
       }
-
-      return checkResult
     } catch (err) {
       console.log(err)
-      return -1
+      console.log('WARNING - '+ checkConfig.name +': context is not defined')
+      checkResult.status = 'fail'
+      checkResult.result = err.message
+      checkResult.description = checkConfig.description
+      return checkResult
     }
   }
 }
 
 module.exports = check_repo_pr_open
-             

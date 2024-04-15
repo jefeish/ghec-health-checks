@@ -5,12 +5,12 @@
  * (including this one)
  */
 
-const Command = require('./command.js')
+const Command = require('./common/command.js')
 let instance = null
 
 
 class checksTemplate extends Command {
-  //  ^^^^^^^^^^^^^^^^^^^^--- change this!
+  //  ^^^^^^^^^^^^^^--- change this!
 
   // eslint-disable-next-line no-useless-constructor
   constructor() {
@@ -23,7 +23,7 @@ class checksTemplate extends Command {
   static getInstance() {
     if (!instance) {
       instance = new checksTemplate()
-                 //  ^^^^^^^^^^^^^^^^^^^^--- change this!
+                 //  ^^^^^^^^^^^^^^^--- change this!
     }
 
     return instance
@@ -35,42 +35,52 @@ class checksTemplate extends Command {
    * @param {*} context 
    * @param {*} data 
    */
-  async execute(context, params) {
+  async execute(context, checkConfig) {
+
+    console.log(checkConfig.name +'.execute()')
+    let checkResult = {
+      "name": checkConfig.name,
+      "description": checkConfig.description,
+      "result": "result",
+      "status": "status"
+    }
 
     try {
 
-      if (typeof params == 'undefined') {
-        params = 'NA'
+      if (typeof checkConfig == 'undefined') {
+          checkResult.name = 'checkConfig is not defined',
+          checkResult.status = 'fail',
+          checkResult.result = 'checkConfig is not defined',
+          checkResult.description = 'checkConfig is not defined'
+          return checkResult
       }
-      console.log('checksTemplate.execute()')
-      // THIS IS A SAMPLE GITHUB REST API CALL
-      // PLEASE PROVIDE YOUR OWN CODE HERE !
-      //
-      // FOR REFERENCE SEE: https://octokit.github.io/rest.js
-      //
-      // --------------------------------------
 
-      // const issue = context.issue(
-      //   {
-      //     owner: context.payload.repository.owner.login,
-      //     repo: context.payload.repository.name,
-      //     title: data[0],
-      //     body: data[1]
-      //   }
-      // )
-      //
-      // return context.github.issues.create(issue)
-      return {
-        name: 'checksTemplate',
-        status: 'failure',
-        summary: 'unable to execute checksTemplatef',
+      // if the context is not defined or the checkConfig is not defined, return an error
+      if (context.octokit !== undefined && checkConfig.params !== undefined) {
+      
+        // ------------------------------------------------
+        // YOUR CODE HERE !
+        // ------------------------------------------------
+
+        return checkResult
+      }
+      else {
+        console.log('WARNING - '+ checkConfig.name +': context is not defined')
+        checkResult.status = 'fail'
+        checkResult.result = 'context is not defined'
+        checkResult.description = checkConfig.description
+        return checkResult
       }
     } catch (err) {
-      context.log(err)
-      return -1
+      console.log(err)
+      console.log('WARNING - '+ checkConfig.name +': context is not defined')
+      checkResult.status = 'fail'
+      checkResult.result = err.message
+      checkResult.description = checkConfig.description
+      return checkResult
     }
   }
 }
 
 module.exports = checksTemplate
-             //  ^^^^^^^^^^^^^^^^^^^^--- change this!
+             //  ^^^^^^^^^^^^^^--- change this!

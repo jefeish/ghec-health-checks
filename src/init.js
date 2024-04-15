@@ -32,29 +32,29 @@ const util = require('util')
  * @param {*} modulesPath 
  * @returns 
  */
-function readHealthCheckModules(app, modulesPath) {
-  app.log.debug('readHealthCheckModules: read the health check modules from the HealthChecks/ folder')
+// function readHealthCheckModules(app, modulesPath) {
+//   app.log.debug('readHealthCheckModules: read the health check modules from the HealthChecks/ folder')
 
-  // An array to store the names of the health check files
-  let healthCheckFiles = ['test']
+//   // An array to store the names of the health check files
+//   let healthCheckFiles = ['test']
 
-  try {
-    // initial read of the 'HealthChecks/' folder
-    healthCheckFiles = fs.readdirSync(modulesPath).filter(file => {
-      return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
-    })
+//   try {
+//     // initial read of the 'HealthChecks/' folder
+//     healthCheckFiles = fs.readdirSync(modulesPath).filter(file => {
+//       return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
+//     })
 
-    app.log.debug("healthCheckModules: " + util.inspect(healthCheckFiles))
+//     app.log.debug("healthCheckModules: " + util.inspect(healthCheckFiles))
 
-  } catch (err) {
-    app.log.error(err)
-  }
+//   } catch (err) {
+//     app.log.error(err)
+//   }
 
-  app.log.debug('readHealthCheckModules: complete')
-  app.log.info("Available Health Check Modules (files): " + util.inspect(healthCheckFiles))
+//   app.log.debug('readHealthCheckModules: complete')
+//   app.log.info("Available Health Check Modules (files): " + util.inspect(healthCheckFiles))
  
-  return healthCheckFiles
-}
+//   return healthCheckFiles
+// }
 
 /**
  * @description register the health check modules
@@ -62,88 +62,88 @@ function readHealthCheckModules(app, modulesPath) {
  * @returns
  * 
  */
-exports.registerHealthCheckModules = async (app, modulesPath) => {
-  app.log.info('registerHealthCheckModules: register the health check modules')
-  app.log.info("modulesPath: " + modulesPath)
+// exports.registerHealthCheckModules = async (app, modulesPath) => {
+//   app.log.info('registerHealthCheckModules: register the health check modules')
+//   app.log.info("modulesPath: " + modulesPath)
   
-  const healthCheckFiles = readHealthCheckModules(app, modulesPath)
-  let healthCheckModules = new Map()
+//   const healthCheckFiles = readHealthCheckModules(app, modulesPath)
+//   let healthCheckModules = new Map()
 
-  try {
-    healthCheckModules = await mapModuleNamesToObjects(app, healthCheckFiles)
-  } catch (err) {
-    app.log.error(err)
-  }
+//   try {
+//     healthCheckModules = await mapModuleNamesToObjects(app, healthCheckFiles)
+//   } catch (err) {
+//     app.log.error(err)
+//   }
 
-  app.log.info("healthCheckModules: " + util.inspect(healthCheckModules))
-  app.log.info('registerHealthCheckModules - complete')
+//   app.log.info("healthCheckModules: " + util.inspect(healthCheckModules))
+//   app.log.info('registerHealthCheckModules - complete')
 
-  return healthCheckModules
-}
+//   return healthCheckModules
+// }
 
 /**
  * @description Map the module name to the actual object
  * @param {*} healthCheckFiles 
  * @returns 
  */
-async function mapModuleNamesToObjects(app, healthCheckFiles) {
-  // A Map to store associated HealthCheck module-names and objects
-  app.log.debug('mapModuleNamesToObjects: Map the module name to the actual object')
-  let healthCheckModules = new Map()
+// async function mapModuleNamesToObjects(app, healthCheckFiles) {
+//   // A Map to store associated HealthCheck module-names and objects
+//   app.log.debug('mapModuleNamesToObjects: Map the module name to the actual object')
+//   let healthCheckModules = new Map()
 
-  // Create a `healthChecks` map that associates module names to command objects.
-  for (const check of healthCheckFiles) {
-    app.log.info("Register the  Health-Check modules")
-    const filePath = './src/HealthChecks/' + check
-    app.log.debug("filePath: " + filePath)
-    const fileContents = fs.readFileSync(filePath, 'utf8');
+//   // Create a `healthChecks` map that associates module names to command objects.
+//   for (const check of healthCheckFiles) {
+//     app.log.info("Register the  Health-Check modules")
+//     const filePath = './src/HealthChecks/' + check
+//     app.log.debug("filePath: " + filePath)
+//     const fileContents = fs.readFileSync(filePath, 'utf8');
 
-    // Search for the module name using a regular expression
-    const moduleNameRegex = /(?<=\bmodule\.exports\s*=\s*)\w+/;
-    const moduleName = fileContents.match(moduleNameRegex);
+//     // Search for the module name using a regular expression
+//     const moduleNameRegex = /(?<=\bmodule\.exports\s*=\s*)\w+/;
+//     const moduleName = fileContents.match(moduleNameRegex);
 
-    try {
-      // get an instance of the module
-      const cmd = require(process.cwd() + '/src/healthChecks/' + check)
-      const command = cmd.getInstance()
+//     try {
+//       // get an instance of the module
+//       const cmd = require(process.cwd() + '/src/healthChecks/' + check)
+//       const command = cmd.getInstance()
 
-      // validate the module
-      const result = await command.execute(app, 'test')
-      app.log.info("initial registration exec: " + JSON.stringify(result))
+//       // validate the module
+//       const result = await command.execute(app, 'test')
+//       app.log.info("initial registration exec: " + JSON.stringify(result))
 
-      // check if the returned result is a JSON object with the correct keys
-      // if not, log the event and skip the module
-      const requiredKeys = ['name', 'description', 'result', 'status'];
-      const hasValidKeys = requiredKeys.every(key => key in result);
+//       // check if the returned result is a JSON object with the correct keys
+//       // if not, log the event and skip the module
+//       const requiredKeys = ['name', 'description', 'result', 'status'];
+//       const hasValidKeys = requiredKeys.every(key => key in result);
       
-      if (!hasValidKeys) {
-        throw new Error('Invalid result object. Missing one or more required keys. \nRequired Keys: '+ requiredKeys);
-      }
-      else {
-        app.log.debug('Module is valid: healthCheckModules['+moduleName+'] : '+ util.inspect(command))
-        // add the module to the healthChecks map
-        healthCheckModules[moduleName] = command
-      }
-    } catch (err) {
-      app.log.error('Error loading health check module: ' + check +'\n'+ err +'\nSkipping this module')
-    }
-  }
+//       if (!hasValidKeys) {
+//         throw new Error('Invalid result object. Missing one or more required keys. \nRequired Keys: '+ requiredKeys);
+//       }
+//       else {
+//         app.log.debug('Module is valid: healthCheckModules['+moduleName+'] : '+ util.inspect(command))
+//         // add the module to the healthChecks map
+//         healthCheckModules[moduleName] = command
+//       }
+//     } catch (err) {
+//       app.log.error('Error loading health check module: ' + check +'\n'+ err +'\nSkipping this module')
+//     }
+//   }
 
-  app.log.debug('mapModuleNamesToObjects: healthCheckModules '+ util.inspect(healthCheckModules))
-  // write the item registry to the log
-  if (healthCheckModules) {
-    Object.keys(healthCheckModules).forEach(item => {
-      app.log.debug("healthCheckModules: " + item + ', ' + util.inspect(healthCheckModules[item]))
-    })
+//   app.log.debug('mapModuleNamesToObjects: healthCheckModules '+ util.inspect(healthCheckModules))
+//   // write the item registry to the log
+//   if (healthCheckModules) {
+//     Object.keys(healthCheckModules).forEach(item => {
+//       app.log.debug("healthCheckModules: " + item + ', ' + util.inspect(healthCheckModules[item]))
+//     })
 
-    app.log.debug('mapModuleNamesToObjects: complete')  
-    return healthCheckModules
-  }
-  else {
-    app.log.error('No health check modules found')
-    return null
-  }
-}
+//     app.log.debug('mapModuleNamesToObjects: complete')  
+//     return healthCheckModules
+//   }
+//   else {
+//     app.log.error('No health check modules found')
+//     return null
+//   }
+// }
 
 /**
  * @description

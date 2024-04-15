@@ -33,27 +33,20 @@ class markdownReportIssue extends Command {
    * @param {*} data 
    */
   async execute(context, config, jsonData) {
-    console.log('....markdownReportIssue:config: ', config)
-    // const issueComment = markdownReport(jsonData)
-    // console.log('markdownReportIssue:jsonData: >' + issueComment + '<')
+    try {
+      console.log('....markdownReportIssue:config: ', config)
+      const issueComment = markdownReport(jsonData)
 
-    const issueLabels = await context.octokit.issues.addLabels({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-      issue_number: context.payload.issue.number,
-      labels: ['invalid']
-    })
-
-    console.log('\n\n\n>>>>>>>>>>>>>>>>>>            markdownReportIssue:issueLabels: ', issueLabels + '\n\n\n')
-
-    const issueComment = await context.octokit.issues.createComment({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-      issue_number: context.payload.issue.number,
-      body: "issueComment"
-    })
-
-    console.log('markdownReportIssue:issueComment: ', issueComment)
+      const comment = await context.octokit.issues.createComment({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        issue_number: context.payload.issue.number,
+        body: issueComment
+      })
+    }
+    catch (error) {
+      console.error('Error:', error)
+    }
   }
 }
 

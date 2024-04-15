@@ -2,7 +2,8 @@
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
  */
-const init = require('./init.js')
+// const init = require('./init.js')
+const yaml = require('js-yaml')
 const util = require('util')
 const fs = require('fs');
 const ui = require('./ui/appUI.js')
@@ -36,8 +37,16 @@ module.exports = (app, { getRouter }) => {
   //read the environment variable for the config file path
   const configPath = process.cwd() + process.env.HEALTHCHECK_CONFIG_PATH
 
+  // ---------------------------------------------------------------------------
+  // load all health check reports from the 'HEALTHCHECK_REPORT_PATH' location 
+  // ---------------------------------------------------------------------------
+
+  // read the environment variable for the folder path
+  const reportPath = process.cwd() + process.env.HEALTHCHECK_REPORT_PATH
+
   // initial read of the config file
-  config = init.loadConfig(app, configPath)
+  // config = init.loadConfig(app, configPath)
+  config = loadConfig(app, configPath)
 
   // Watch for file changes to 'configPath' (yaml)
   fs.watch(configPath, (eventType, filename) => {
@@ -46,14 +55,32 @@ module.exports = (app, { getRouter }) => {
     if (filename) {
       app.log.info(`Filename: ${filename}`);
       // reload App configurations from .github/config.yml
-      config = init.loadConfig(app, configPath)
+      // config = init.loadConfig(app, configPath)
+      config = loadConfig(app, configPath)
       app.log.info("Load configuration: " + util.inspect(config))
     } else {
       app.log.error('Filename not provided');
     }
   });
 
- 
+  function loadConfig(app, configPath){
+    app.log.info('Loading Health Check Configuration')
+    // load App configurations from .github/config.yml
+    try {
+      const config = yaml.load(fs.readFileSync(configPath, 'utf8'))
+      app.log.debug('config: ' + util.inspect(config))
+      return config
+    } catch (err) {
+      app.log.error(err)
+    }
+  }
+
+  /**
+   * @description Run all the health check reports, as defined in the configuration
+   * @param {*} context 
+   * @param {*} config 
+   * @param {*} jsonData 
+   */
   async function runReports(context, config, jsonData) {
     // execute all registered reports 
     // app.log.info('runReports:config.reports: ' + util.inspect(config.reports))
@@ -61,14 +88,15 @@ module.exports = (app, { getRouter }) => {
     for (let i = 0; i < config.reports.length; i++) {
       let report = config.reports[i];
       // app.log.info('runReports:report['+report.name+']: ' + util.inspect(report))
-      const reportModule = require('./healthChecks/reportAdapters/' + report.name)
+      // Eg.: ./healthChecks/reportAdapters/
+      const reportModule = require(reportPath +'/'+ report.name)
       const reportInstance = reportModule.getInstance()
-
       const reportConfig = config.reports.find(item => item.name === report.name);
 
+      // DEBUG - log the report configuration
       // console.log('runReports:reportConfig['+report.name+']: ' + util.inspect(reportConfig))
 
-      reportInstance.execute(context, reportConfig, jsonData)
+      await reportInstance.execute(context, reportConfig, jsonData)
     }
   }
 
@@ -80,7 +108,7 @@ module.exports = (app, { getRouter }) => {
   const modulesPath = process.cwd() + process.env.HEALTHCHECK_MODULE_PATH
 
   // initial read of the 'healthChecks/' folder
-  healthChecksModules = init.registerHealthCheckModules(app, modulesPath)
+  // healthChecksModules = init.registerHealthCheckModules(app, modulesPath)
 
   // require the health check modules, so that it can be found
   // requireModules(modulesPath, healthChecksModules)
@@ -99,66 +127,58 @@ module.exports = (app, { getRouter }) => {
         return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
       })
       // map the module names to objects
-      healthChecksModules = init.registerHealthCheckModules(app, modulesPath)
+      // healthChecksModules = init.registerHealthCheckModules(app, modulesPath)
     } else {
       app.log.error('Filename not provided');
     }
   });
 
-  // ---------------------------------------------------------------------------
-  // load all health check reports from the 'HEALTHCHECK_REPORT_PATH' location 
-  // ---------------------------------------------------------------------------
-
-  // read the environment variable for the folder path
-  const reportPath = process.cwd() + process.env.HEALTHCHECK_REPORT_PATH
 
   // ---------------------------------------------------------------------------
   // Start executing the Health Checks based on the configuration (yaml)
   // ---------------------------------------------------------------------------
 
   // Trigger option for the Health checks
-  app.on('issues.opened', async context => {
-    app.log.info('issues.opened')
+  // app.on('issues.opened', async context => {
+  //   app.log.info('issues.opened')
 
-    // regular expression to make sure the comment starts with '/status', 
-    // as a single word including newlines
-    const regex = new RegExp('^/status\\b', 'm')
+  //   // regular expression to make sure the comment starts with '/status', 
+  //   // as a single word including newlines
+  //   const regex = new RegExp('^/status\\b', 'm')
     
-    if(regex.test(context.payload.comment.body)) {
-      app.log.info('...issue created')
-      app.log.info('...issue body contains /status')
+  //   if(regex.test(context.payload.comment.body)) {
+  //     app.log.info('...issue created')
+  //     app.log.info('...issue body contains /status')
 
-      // prevent the bot from triggering itself
-      if (context.payload.sender.type !== 'Bot') {
-        app.log.info('...sender is not a bot')
+  //     // prevent the bot from triggering itself
+  //     if (context.payload.sender.type !== 'Bot') {
+  //       app.log.info('...sender is not a bot')
 
-        // execute all registered health checks
-        const report = executeHealthChecks(app, context, config)
+  //       // execute all registered health checks
+  //       const report = executeHealthChecks(app, context, config)
 
+  //       // const issue = context.issue(
+  //       //   {
+  //       //     owner: context.payload.repository.owner.login,
+  //       //     repo: context.payload.repository.name,
+  //       //     title: 'Health check report',
+  //       //     body: '# Health Check Report:\n\n' + report.markdown()
+  //       //   }
+  //       // )
 
+  //       // app.log.info("report: " + report.json())
+  //       // app.log.info("report: " + report.markdown())
+  //       // app.log.info("report: " + report.csv())
 
-        // const issue = context.issue(
-        //   {
-        //     owner: context.payload.repository.owner.login,
-        //     repo: context.payload.repository.name,
-        //     title: 'Health check report',
-        //     body: '# Health Check Report:\n\n' + report.markdown()
-        //   }
-        // )
+  //       // return context.octokit.issues.createComment(issue)
 
-        // app.log.info("report: " + report.json())
-        // app.log.info("report: " + report.markdown())
-        // app.log.info("report: " + report.csv())
-
-        // return context.octokit.issues.createComment(issue)
-
-      }
-      else {
-        app.log.debug('...sender is a bot')
-        return null
-      }
-    }
-  })
+  //     }
+  //     else {
+  //       app.log.debug('...sender is a bot')
+  //       return null
+  //     }
+  //   }
+  // })
 
   // Trigger on Issue comment '/status' to execute the Health checks
   app.on('issue_comment.created', async context => {
@@ -173,20 +193,10 @@ module.exports = (app, { getRouter }) => {
       // prevent the bot from triggering itself
       if (context.payload.sender.type !== 'Bot') {
         app.log.info('...sender is not a bot')
-        app.log.info('...creating a comment on the issue ')
 
-        await context.octokit.issues.createComment({
-          owner: context.payload.repository.owner.login,
-          repo: context.payload.repository.name,
-          issue_number: context.payload.issue.number,
-          body: 'Running health checks...'
-        })
-      
         // execute all registered health checks
         const reportCollection = await executeHealthChecks(app, context, config)
-
         runReports(context, config, reportCollection)
-        
       }
       else {
         app.log.debug('...sender is a bot')
@@ -230,15 +240,7 @@ async function executeHealthChecks(app, context, config) {
     const command = cmd.getInstance()
     // run the health check and measure the execution time
     const start = process.hrtime.bigint();
-    app.log.info('                                                    Executing health check: ' + check.name)
-
-    // DEBUG: create a comment on the issue to indicate that the health check is running
-    // await context.octokit.issues.createComment({
-    //   owner: context.payload.repository.owner.login,
-    //   repo: context.payload.repository.name,
-    //   issue_number: context.payload.issue.number,
-    //   body: "Running health check: " + check.name 
-    // })
+    app.log.info('Executing health check: ' + check.name)
     
     result = await command.execute(context, check)
     // check if the result is of the format, { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
@@ -256,26 +258,6 @@ async function executeHealthChecks(app, context, config) {
     result.elapsed = elapsed + ' ms'
     reportCollection.push(result)
   };
-
-  // DEBUG: create a comment on the issue, reporting the health check results
-  const { markdownReport } = require('./healthChecks/reportAdapters/reportConverter')
-
-  await context.octokit.issues.createComment({
-    owner: context.payload.repository.owner.login,
-    repo: context.payload.repository.name,
-    issue_number: context.payload.issue.number,
-    body: markdownReport(reportCollection)
-  })
-  console.log('\n\n\n>>>>>>>>>>>>>>>>>                             reportCollection: ' + util.inspect(reportCollection))
-
-  // const issueLabels = await context.octokit.issues.addLabels(
-  //   {
-  //       owner: context.payload.repository.owner.login,
-  //       repo: context.payload.repository.name,
-  //       issue_number: context.payload.issue.number,
-  //       labels: ['documentation']
-  //   })
-  // console.log('>>>>>>>>>>>>>>>>>>>>>>                              issueLabels: ' + util.inspect(issueLabels))
 
   // return the report
   return reportCollection
