@@ -30,6 +30,18 @@ module.exports = (app, { getRouter }) => {
   // log the web UI access URL
   app.log.info('Web UI access: https://<your-github-app-url>/healthCheck')
 
+  // if the 'tmp' folder does not exist, create it
+  if (!fs.existsSync('./tmp')) {
+    fs.mkdirSync('./tmp');
+    app.log.info('tmp/ folder created')
+  }
+
+  // if the 'reports' folder does not exist, create it
+  if (!fs.existsSync('./reports')) {
+    fs.mkdirSync('./reports');
+    app.log.info('reports/ folder created')
+  }
+  
   // ---------------------------------------------------------------------------
   // load App configurations from .github/config.yml and watch for changes
   // ---------------------------------------------------------------------------

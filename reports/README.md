@@ -1,0 +1,1 @@
+# Contains Report Adapter Output (eg.: .yml / .json / .md / .csv)

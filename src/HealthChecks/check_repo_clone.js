@@ -10,8 +10,9 @@ const { exec } = require('child_process');
 const fs = require('fs-extra');
 const util = require('util')
 const path = require('path');
-let instance = null
 
+const simpleGit = require('simple-git');
+let instance = null
 
 class check_repo_clone extends Command {
 
@@ -31,41 +32,45 @@ class check_repo_clone extends Command {
     return instance
   }
 
+  /**
+   * @description
+   * 
+   * @param {*} repositoryUrl 
+   * @param {*} destinationPath 
+   * @returns 
+   */
   async cloneRepository(repositoryUrl, destinationPath) {
+    const git = simpleGit();
+    console.log('Cloning repository:', repositoryUrl, 'to:', destinationPath)
+
+    return new Promise((resolve, reject) => {
+      git.clone(repositoryUrl, destinationPath, (error, result) => {
+        if (error) {
+          console.error('Error:', error);
+          console.log('Result:', result);
+          reject(error);
+        } else {
+          console.log('Repository cloned successfully:', result);
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  /**
+   * @description
+   * 
+   * @param {*} directoryPath 
+   */
+  async removeLocalRepository(directoryPath) {
     try {
-      // Construct the git clone command
-      const command = `git clone ${repositoryUrl} ${destinationPath}`;
-
-      // Execute the git clone command
-      const { stdout, stderr } = await exec(command);
-
-      // Check if there's any error output (stderr)
-      if (stderr) {
-        console.error('Error cloning repository:', stderr);
-        await this.removeLocalRepository(destinationPath)
-        return true; // Return false indicating failure
-      } else {
-        console.log('Repository cloned successfully:', stdout);
-        await this.removeLocalRepository(destinationPath)
-        return true; // Return true indicating success
-      }
+      await fs.remove(directoryPath);
+      console.log(`Directory ${directoryPath} removed successfully.`);
     } catch (error) {
-      console.error('Error:', error);
-      await this.removeLocalRepository(destinationPath)
-      return false; // Return false indicating failure
+      console.error(`Error removing directory ${directoryPath}:`, error);
     }
   }
 
-  
-  async removeLocalRepository(directoryPath) {
-      try {
-          await fs.remove(directoryPath);
-          console.log(`Directory ${directoryPath} removed successfully.`);
-      } catch (error) {
-          console.error(`Error removing directory ${directoryPath}:`, error);
-      }
-  }
-  
   /**
    * @description Main entry point for invocation from client
    * 
@@ -83,7 +88,6 @@ class check_repo_clone extends Command {
     }
 
     try {
-
       if (typeof checkConfig == 'undefined') {
         checkResult.name = 'checkConfig is not defined',
           checkResult.status = 'fail',
@@ -104,20 +108,20 @@ class check_repo_clone extends Command {
         const repoName = lastPartWithGit.replace(/\.git$/, '');
         const destinationPath = './tmp/' + repoName;
 
-        this.cloneRepository(repositoryUrl, destinationPath)
-          .then(success => {
-            if (success) {
-              this.removeLocalRepository(destinationPath)
-              console.log('Repository cloned and removed successfully!');
-            } else {
-              this.removeLocalRepository(destinationPath)
-              console.log('Failed to clone repository or remove repository folder.');
-            }
-          })
-          .catch(error => {
-            this.removeLocalRepository(destinationPath)
-            console.error('Error:', error);
-          });
+        const res = await this.cloneRepository(repositoryUrl, destinationPath)
+        if (res) {
+          console.log('Repository cloned successfully!');
+          checkResult.status = 'pass'
+          checkResult.result = 'Repository cloned successfully!'
+          checkResult.description = checkConfig.description
+          await this.removeLocalRepository(destinationPath)
+        } else {
+          console.log('Failed to clone repository.');
+          checkResult.status = 'fail'
+          checkResult.result = 'Failed to clone repository'
+          checkResult.description = checkConfig.description
+          await this.removeLocalRepository(destinationPath)
+        }
 
         return checkResult
       }
@@ -129,8 +133,7 @@ class check_repo_clone extends Command {
         return checkResult
       }
     } catch (err) {
-      console.log(err)
-      console.log('WARNING - ' + checkConfig.name + ': context is not defined')
+      console.error('ERROR - ' + checkConfig.name + ': ' + err)
       checkResult.status = 'fail'
       checkResult.result = err.message
       checkResult.description = checkConfig.description
