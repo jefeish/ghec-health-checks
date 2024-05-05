@@ -1,0 +1,37 @@
+name: npm audit check
+
+on:
+  push:
+    branches:
+      - main  # Adjust the branch name as needed
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Specify the Node.js version
+
+      - name: Install dependencies
+        run: npm install --production
+
+      - name: Run npm audit
+        run: npm audit --production --json > audit-results.json
+
+      - name: Create audit badge
+        run: |
+          severity=$(jq '.metadata.vulnerabilities.severity' audit-results.json)
+          total=$(jq '.metadata.vulnerabilities.total' audit-results.json)
+          echo "<img alt=\"npm audit severity\" src=\"https://img.shields.io/badge/audit-$severity%20($total)-orange\">" > audit-badge.md
+
+      - name: Update README.md with badge
+        run: |
+          sed -i '/<npm-audit-badge>/d' README.md
+          echo "<npm-audit-badge>" >> README.md
+          cat audit-badge.md >> README.md
