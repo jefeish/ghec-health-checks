@@ -1,14 +1,7 @@
 name: npm audit check
 
 on:
-  push:
-    branches:
-      - main  # Trigger on push to main branch
   workflow_dispatch:  # Enable manual triggering
-    inputs:
-      runAudit:
-        description: 'Run npm audit manually'
-        required: false  # Make input optional
 
 jobs:
   audit:
