@@ -1,5 +1,7 @@
 ![audit audit](https://img.shields.io/badge/npm_audit-moderate:1-CA6F1E)
 ![audit audit](https://img.shields.io/badge/npm_audit-high:1-darkred)
+![audit audit](https://img.shields.io/badge/npm_audit-moderate:1-CA6F1E)
+![audit audit](https://img.shields.io/badge/npm_audit-high:1-darkred)
 
 ![wip](docs/images/WIP.png)
 
