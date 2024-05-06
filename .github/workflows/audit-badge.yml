@@ -64,7 +64,7 @@ jobs:
       - name: Prepend badge content to README.md
         run: |
           # Define the pattern to search for
-          pattern='![npm audit]'
+          pattern='\!\[npm audit\]'
 
           # Use sed to delete lines matching the pattern in README.md
           sed -i "/^${pattern}/d" README.md
