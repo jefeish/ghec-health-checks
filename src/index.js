@@ -1,14 +1,14 @@
+const cron = require('node-cron');
+
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
  */
-// const init = require('./init.js')
 const yaml = require('js-yaml')
 const util = require('util')
 const fs = require('fs');
 const ui = require('./ui/appUI.js')
 
-// let healthChecksModules = new Map()
 let config = null
 
 /**
@@ -41,7 +41,18 @@ module.exports = (app, { getRouter }) => {
     fs.mkdirSync('./reports');
     app.log.info('reports/ folder created')
   }
-  
+
+  // ---------------------------------------------------------------------------
+  // validate required .github/config.yml environment variables
+  // ---------------------------------------------------------------------------
+  let env_vars = ['HEALTHCHECK_CONFIG_PATH', 'HEALTHCHECK_REPORT_PATH', 'HEALTHCHECK_MODULE_PATH']
+
+  // if the required environment variables are not defined, exit the App
+  if (!env_vars.every(v => process.env[v] !== undefined)) {
+    app.log.error('Missing environment variables check for: ' + env_vars)
+    process.exit(1)
+  }
+
   // ---------------------------------------------------------------------------
   // load App configurations from .github/config.yml and watch for changes
   // ---------------------------------------------------------------------------
@@ -57,8 +68,8 @@ module.exports = (app, { getRouter }) => {
   const reportPath = process.cwd() + process.env.HEALTHCHECK_REPORT_PATH
 
   // initial read of the config file
-  // config = init.loadConfig(app, configPath)
   config = loadConfig(app, configPath)
+  app.log.info("Load configuration: " + util.inspect(config.health_checks[0].params))
 
   // Watch for file changes to 'configPath' (yaml)
   fs.watch(configPath, (eventType, filename) => {
@@ -67,7 +78,6 @@ module.exports = (app, { getRouter }) => {
     if (filename) {
       app.log.info(`Filename: ${filename}`);
       // reload App configurations from .github/config.yml
-      // config = init.loadConfig(app, configPath)
       config = loadConfig(app, configPath)
       app.log.info("Load configuration: " + util.inspect(config))
     } else {
@@ -75,12 +85,25 @@ module.exports = (app, { getRouter }) => {
     }
   });
 
-  function loadConfig(app, configPath){
+  /**
+   * @description Load the configuration file from the given path
+   * @param {*} app 
+   * @param {*} configPath 
+   * @returns 
+   */
+  function loadConfig(app, configPath) {
     app.log.info('Loading Health Check Configuration')
     // load App configurations from .github/config.yml
     try {
+      let params = null
       const config = yaml.load(fs.readFileSync(configPath, 'utf8'))
       app.log.debug('config: ' + util.inspect(config))
+      const globalVars = config.global_vars;
+      const healthChecks = config.health_checks;
+
+      healthChecks.forEach(check => {
+        check.params = { ...check.params, ...globalVars }; // This will overwrite global_vars with params if they have the same keys
+      });
       return config
     } catch (err) {
       app.log.error(err)
@@ -97,18 +120,28 @@ module.exports = (app, { getRouter }) => {
     // execute all registered reports 
     // app.log.info('runReports:config.reports: ' + util.inspect(config.reports))
 
-    for (let i = 0; i < config.reports.length; i++) {
-      let report = config.reports[i];
-      // app.log.info('runReports:report['+report.name+']: ' + util.inspect(report))
-      // Eg.: ./healthChecks/reportAdapters/
-      const reportModule = require(reportPath +'/'+ report.name)
-      const reportInstance = reportModule.getInstance()
-      const reportConfig = config.reports.find(item => item.name === report.name);
+    // check if we have any reports to run and they are not null
+    if (config.reports !== null) {
+      for (let i = 0; i < config.reports.length; i++) {
+        let report = config.reports[i];
+        // app.log.info('runReports:report['+report.name+']: ' + util.inspect(report))
+        // Eg.: ./healthChecks/reportAdapters/
+        const reportModule = require(reportPath + '/' + report.name)
+        const reportInstance = reportModule.getInstance()
+        const reportConfig = config.reports.find(item => item.name === report.name);
 
-      // DEBUG - log the report configuration
-      // console.log('runReports:reportConfig['+report.name+']: ' + util.inspect(reportConfig))
+        // DEBUG - log the report configuration
+        // console.log('runReports:reportConfig['+report.name+']: ' + util.inspect(reportConfig))
 
-      await reportInstance.execute(context, reportConfig, jsonData)
+        // change the working directory to the root of the App 
+        // Making sure the reports have the correct starting location
+        process.chdir(__dirname + '/..');
+
+        await reportInstance.execute(context, reportConfig, jsonData)
+      }
+    }
+    else {
+      console.log('No reports to run')
     }
   }
 
@@ -118,14 +151,6 @@ module.exports = (app, { getRouter }) => {
 
   // read the environment variable for the folder path
   const modulesPath = process.cwd() + process.env.HEALTHCHECK_MODULE_PATH
-
-  // initial read of the 'healthChecks/' folder
-  // healthChecksModules = init.registerHealthCheckModules(app, modulesPath)
-
-  // require the health check modules, so that it can be found
-  // requireModules(modulesPath, healthChecksModules)
-
-  // console.log('require cache: '+ Object.keys(require.cache));
 
   // Watch for file changes (add, delete) to 'modulesPath'
   fs.watch(modulesPath, (eventType, filename) => {
@@ -138,59 +163,29 @@ module.exports = (app, { getRouter }) => {
       healthCheckFiles = fs.readdirSync(modulesPath).filter(file => {
         return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js')
       })
-      // map the module names to objects
-      // healthChecksModules = init.registerHealthCheckModules(app, modulesPath)
+
     } else {
       app.log.error('Filename not provided');
     }
   });
 
+  // ---------------------------------------------------------------------------
+  // schedule the Health Checks to run at a specific interval
+  // ---------------------------------------------------------------------------
+
+  // if the 'HEALTHCHECK_INTERVAL' environment variable is set, schedule the Health Checks
+  if (process.env.HEALTHCHECK_INTERVAL !== undefined) {
+
+    app.log.info('running the health-checks on a cron schedule: ' + process.env.HEALTHCHECK_INTERVAL);
+    // Schedule tasks to be run on the server.
+    cron.schedule(process.env.HEALTHCHECK_INTERVAL, function () {
+      executeHealthChecks(app, null, config)
+    });
+  }
 
   // ---------------------------------------------------------------------------
   // Start executing the Health Checks based on the configuration (yaml)
   // ---------------------------------------------------------------------------
-
-  // Trigger option for the Health checks
-  // app.on('issues.opened', async context => {
-  //   app.log.info('issues.opened')
-
-  //   // regular expression to make sure the comment starts with '/status', 
-  //   // as a single word including newlines
-  //   const regex = new RegExp('^/status\\b', 'm')
-    
-  //   if(regex.test(context.payload.comment.body)) {
-  //     app.log.info('...issue created')
-  //     app.log.info('...issue body contains /status')
-
-  //     // prevent the bot from triggering itself
-  //     if (context.payload.sender.type !== 'Bot') {
-  //       app.log.info('...sender is not a bot')
-
-  //       // execute all registered health checks
-  //       const report = executeHealthChecks(app, context, config)
-
-  //       // const issue = context.issue(
-  //       //   {
-  //       //     owner: context.payload.repository.owner.login,
-  //       //     repo: context.payload.repository.name,
-  //       //     title: 'Health check report',
-  //       //     body: '# Health Check Report:\n\n' + report.markdown()
-  //       //   }
-  //       // )
-
-  //       // app.log.info("report: " + report.json())
-  //       // app.log.info("report: " + report.markdown())
-  //       // app.log.info("report: " + report.csv())
-
-  //       // return context.octokit.issues.createComment(issue)
-
-  //     }
-  //     else {
-  //       app.log.debug('...sender is a bot')
-  //       return null
-  //     }
-  //   }
-  // })
 
   // Trigger on Issue comment '/status' to execute the Health checks
   app.on('issue_comment.created', async context => {
@@ -201,7 +196,7 @@ module.exports = (app, { getRouter }) => {
     // as a single word including newlines
     const regex = new RegExp('^/status\\b', 'm')
 
-    if(regex.test(context.payload.comment.body)) {
+    if (regex.test(context.payload.comment.body)) {
       // prevent the bot from triggering itself
       if (context.payload.sender.type !== 'Bot') {
         app.log.info('...sender is not a bot')
@@ -243,33 +238,46 @@ async function executeHealthChecks(app, context, config) {
   let reportCollection = []
   let result = {}
 
-  // Loop through each health check in the config object
-  for (let i = 0; i < config.health_checks.length; i++) {
-    let check = config.health_checks[i];
-  
-    // get an instance of the module
-    const cmd = require(process.cwd() + '/src/healthChecks/' + check.name)
-    const command = cmd.getInstance()
-    // run the health check and measure the execution time
-    const start = process.hrtime.bigint();
-    app.log.info('Executing health check: ' + check.name)
-    
-    result = await command.execute(context, check)
-    // check if the result is of the format, { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
-    // if not, then add the name and description to the result with the status 'error' and the description 'invalid result format'
-    if (!result.hasOwnProperty('name') || !result.hasOwnProperty('description') || !result.hasOwnProperty('result') || !result.hasOwnProperty('status')) {
-      result.name = check.name
-      result.description = check.description
-      result.severity = check.severity
-      result.status = 'error'
-      result.result = 'invalid result format'
-    }
-    const end = process.hrtime.bigint();
-    const elapsed = Number(end - start) / 1000000
-    // add the elapsed time to the result JSON
-    result.elapsed = elapsed + ' ms'
-    reportCollection.push(result)
-  };
+  try {
+    // Loop through each health check in the config object
+    for (let i = 0; i < config.health_checks.length; i++) {
+      let check = config.health_checks[i];
+
+      // get an instance of the module
+      const cmd = require(__dirname + '/healthChecks/' + check.name)
+      const command = cmd.getInstance()
+      // run the health check and measure the execution time
+      const start = process.hrtime.bigint();
+      app.log.info('Executing health check: ' + check.name)
+
+      // set the current working directory to the root of the App
+      process.chdir(__dirname + '/..');
+      result = await command.execute(context, check)
+      // check if the result is of the format, { "name": "check_repo_clone", "description": "test", "result": "result", "status": "status" }
+      // if not, then add the name and description to the result with the status 'error' and the description 'invalid result format'
+      if (!result.hasOwnProperty('name') || !result.hasOwnProperty('description') || !result.hasOwnProperty('result') || !result.hasOwnProperty('status')) {
+        result.name = check.name
+        result.description = check.description
+        result.severity = check.severity
+        result.status = 'error'
+        result.result = 'invalid result format'
+      }
+      const end = process.hrtime.bigint();
+      const elapsed = Number(end - start) / 1000000
+      // add the elapsed time to the result JSON
+      result.elapsed = elapsed + ' ms'
+      reportCollection.push(result)
+    };
+  } catch (error) {
+
+    // if ANY error occurs, log the error and add the error message to the result JSON
+    app.log.error('Error executing health checks: ' + error)
+    result.name = 'NA'
+    result.description = 'NA'
+    result.severity = 'NA'
+    result.status = 'error'
+    result.result = error.message.replace(/\|/g, '\\|').replace(/\n/g, '<br />');
+  }
 
   // return the report
   return reportCollection

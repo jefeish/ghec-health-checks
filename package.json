@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "dev": "nodemon --exec \"npm start\"",
-    "start": "DEBUG=@octokit/* PORT=2001 probot run ./src/index.js",
+    "start": "PORT=2001 probot run ./src/index.js",
     "test": "jest",
     "build": "react-scripts build",
     "eject": "react-scripts eject"
@@ -23,13 +23,14 @@
     "@testing-library/user-event": "^13.5.0",
     "badge-maker": "^3.3.1",
     "bootstrap": "^5.3.2",
+    "fix": "^0.0.3",
     "fs-extra": "^11.2.0",
-    "handlebars": "^4.7.8",
     "jquery": "^3.7.1",
+    "node-cron": "^3.0.3",
     "nodemon": "^3.0.1",
+    "nth-check": "^2.1.1",
     "probot": "^12.2.4",
-    "serve-favicon": "^2.5.0",
-    "web-vitals": "^2.1.4"
+    "simple-git": "^3.24.0"
   },
   "devDependencies": {
     "jest": "^28.0.0",

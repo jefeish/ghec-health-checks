@@ -39,6 +39,7 @@ class markdownReportFile extends Command {
 
     const markdown = markdownReport(jsonData);
     const outputFilePath = config.params.path;
+
     fs.writeFileSync(outputFilePath, markdown);
 
     return markdown;

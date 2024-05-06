@@ -1,3 +1,23 @@
+# This is a configuration file for the GitHub Enterprise Cloud 'Health Checks' app
+# The app will read this file to determine the health checks to run and the reports to generate
+# Each health check is defined by a name, description, type, severity, message, and parameters
+
+# Global variables - these are used across all health checks, unless overridden by the health check
+globals:
+  # true - overwrite the individual health check's parameter with the global parameter (based on the matching key)
+  # false - the individual health check's repo parameter will be used, if it is defined
+  overwrite: false
+  params:
+    repo: "https://github.com/jefeish/foo-bar.git"
+
+# Health checks - each health check is defined by a name, description, type, severity, message, and parameters
+# name: the health check, the name has to match the name of the health check file (.js)
+#
+# description: a description of the health check
+# type: the type of health check (repo, org, etc.)
+# severity: the severity of the health check (low, medium, high, critical)
+# message: a custom message to display when the health check fails
+# params: the parameters for the health check. They are specific to the health check
 health_checks:
   - name: "check_repo_clone"
     description: standard repository checks (clone, push, PR)
@@ -9,32 +29,46 @@ health_checks:
       branch: "" # optional: default is "main"
 
   - name: "check_repo_commit"
-    description: standard repository checks (clone, push, PR)
+    description: Commit to a branch via 'git'
     type: "repo"
     severity: "medium"
     message: "This is a custom message"
     params:
       repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
-      branch: "" # optional: default is "main"
+      branch: "main" # optional: default is "main"
 
-  - name: "check_repo_pr_open"
-    description: standard repository checks (clone, push, PR)
-    type: "repo"
-    severity: "low"
-    message: "This is a custom message"
-    params:
-      repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
-      branch: "" # optional: default is "main"
+  # - name: "check_repo_commit_api"
+  #   description: Commit to a branch via GitHub API
+  #   type: "repo"
+  #   severity: "medium"
+  #   message: "This is a custom message"
+  #   params:
+  #     repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
+  #     branch: "main" # optional: default is "main"
 
-  - name: "check_repo_pr_close"
-    description: standard repository checks (clone, push, PR)
-    type: "repo"
-    severity: "high"
-    message: "This is a custom message"
-    params:
-      repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
-      branch: "" # optional: default is "main"
+  # - name: "check_repo_pr_open"
+  #   description: standard repository checks (clone, push, PR)
+  #   type: "repo"
+  #   severity: "low"
+  #   message: "This is a custom message"
+  #   params:
+  #     repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
+  #     branch: "" # optional: default is "main"
 
+  # - name: "check_repo_pr_close"
+  #   description: standard repository checks (clone, push, PR)
+  #   type: "repo"
+  #   severity: "high"
+  #   message: "This is a custom message"
+  #   params:
+  #     repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
+  #     branch: "" # optional: default is "main"
+
+# Reports - each report is defined by a name, description, and parameters
+#
+# name: the report, the name has to match the name of the report file (.js)
+# description: a description of the report
+# params: the parameters for the report. They are specific to the report
 reports:
   - name: "markdownReportIssue"
     description: "Markdown report issue"
@@ -44,12 +78,12 @@ reports:
     params:
       path: "./reports/report.md"
       
-  - name: "csvReportFile"
-    description: "CSV report"
-    params:
-      path: "./reports/report.csv"   
-
-  # - name: "jsonReportFile"
-  #   description: "JSON report"
+  # - name: "csvReportFile"
+  #   description: "CSV report"
   #   params:
-  #     path: "./reports/report.json"
+  #     path: "./reports/report.csv"   
+
+  - name: "jsonReportFile"
+    description: "JSON report"
+    params:
+      path: "./reports/report.json"

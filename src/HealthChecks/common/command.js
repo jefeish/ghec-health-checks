@@ -9,6 +9,16 @@ class Command {
       throw new Error("This is not a valid 'EventHandler' class. The class must implement an 'execute()' method!");
     }
   }
+  // Predefined Result function that returns a JSON object
+  getJsonObject(name, description, result, status) {
+    let resultObject = {
+      "name": name,
+      "description": description,
+      "result": result,
+      "status": status
+    }
+    return resultObject
+  }
 }
 
 module.exports = Command

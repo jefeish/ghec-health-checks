@@ -46,11 +46,11 @@ class check_repo_clone extends Command {
     return new Promise((resolve, reject) => {
       git.clone(repositoryUrl, destinationPath, (error, result) => {
         if (error) {
-          console.error('Error:', error);
+          console.error('Error cloning repository ['+ destinationPath +']:', error);
           console.log('Result:', result);
           reject(error);
         } else {
-          console.log('Repository cloned successfully:', result);
+          console.log('Repository ['+ destinationPath +'] cloned successfully: ', result);
           resolve(true);
         }
       });
@@ -58,17 +58,31 @@ class check_repo_clone extends Command {
   }
 
   /**
-   * @description
+   * @description remove the local repository
+   * 1. check if the directory exists
+   * 2. remove the directory
    * 
    * @param {*} directoryPath 
    */
   async removeLocalRepository(directoryPath) {
+    console.log('\n\n ---------------------------------------------------\n Checking for directory: >'+ directoryPath +'<\n ---------------------------------------------------\n\n');
+
     try {
-      await fs.remove(directoryPath);
-      console.log(`Directory ${directoryPath} removed successfully.`);
+      // check if the directory exists
+      if (fs.existsSync(directoryPath)) {
+        console.log('\n\n ---------------------------------------------------\n Directory >'+ directoryPath +'< Exists!\n ---------------------------------------------------\n\n');
+
+        await fs.remove(directoryPath);
+        console.log('\n\n ---------------------------------------------------\n Directory >'+ directoryPath +'< removed successfully.\n ---------------------------------------------------\n\n');
+      }
     } catch (error) {
-      console.error(`Error removing directory ${directoryPath}:`, error);
+      console.error('Error removing directory >'+ directoryPath +'<:'+ error);
     }
+    // log the folder current contents
+    fs.readdirSync('./tmp/').forEach(file => {
+      console.log('DEBUG: ./tmp/' + file);
+    });
+
   }
 
   /**
@@ -80,12 +94,15 @@ class check_repo_clone extends Command {
   async execute(context, checkConfig) {
 
     console.log(checkConfig.name + '.execute()')
+
     let checkResult = {
       "name": checkConfig.name,
       "description": checkConfig.description,
       "result": "result",
       "status": "status"
     }
+
+    let destinationPath = '';
 
     try {
       if (typeof checkConfig == 'undefined') {
@@ -106,17 +123,19 @@ class check_repo_clone extends Command {
 
         // Remove the '.git' extension
         const repoName = lastPartWithGit.replace(/\.git$/, '');
-        const destinationPath = './tmp/' + repoName;
+        destinationPath = './tmp/' + repoName;
+
+        // start by removing the local repository, if it exists
+        await this.removeLocalRepository(destinationPath)
 
         const res = await this.cloneRepository(repositoryUrl, destinationPath)
         if (res) {
-          console.log('Repository cloned successfully!');
           checkResult.status = 'pass'
           checkResult.result = 'Repository cloned successfully!'
           checkResult.description = checkConfig.description
           await this.removeLocalRepository(destinationPath)
         } else {
-          console.log('Failed to clone repository.');
+          console.log('Failed to clone repository: '+ destinationPath);
           checkResult.status = 'fail'
           checkResult.result = 'Failed to clone repository'
           checkResult.description = checkConfig.description
@@ -130,13 +149,15 @@ class check_repo_clone extends Command {
         checkResult.status = 'fail'
         checkResult.result = 'context is not defined'
         checkResult.description = checkConfig.description
+        await this.removeLocalRepository(destinationPath)
         return checkResult
       }
     } catch (err) {
       console.error('ERROR - ' + checkConfig.name + ': ' + err)
       checkResult.status = 'fail'
-      checkResult.result = err.message
+      checkResult.result = err.message.replace(/\|/g, '\\|').replace(/\n/g, '<br />');
       checkResult.description = checkConfig.description
+      await this.removeLocalRepository(destinationPath)
       return checkResult
     }
   }
