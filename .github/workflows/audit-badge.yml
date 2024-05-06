@@ -54,13 +54,24 @@ jobs:
             echo "![audit audit](https://img.shields.io/badge/npm_audit-critical:$critical-darkred)" >> audit-badge.md
           fi
 
+          # Extract total vulnerability count
+          total=$(jq -r '.metadata.vulnerabilities.total' audit-results.json)
+          if [ $total -eq 0 ]; then
+            echo "![audit audit](https://img.shields.io/badge/npm_audit-pass-green)" >> audit-badge.md
+          fi
       - name: Prepend badge content to README.md
         run: |
           # Define the pattern to search for
           pattern='\!\[npm audit\]'
 
-          # Use sed to delete lines matching the pattern in README.md
-          sed -i "/^${pattern}/d" README.md
+          # Create a temporary file to store modified content
+          tmp_file=$(mktemp)
+
+          # Use grep to filter out lines not matching the pattern and write to the temporary file
+          grep -v "^${pattern}" README.md > "$tmp_file"
+
+          # Overwrite README.md with content from the temporary file
+          mv "$tmp_file" README.md
 
           badge_content=$(cat audit-badge.md)
           readme_content=$(cat README.md)
