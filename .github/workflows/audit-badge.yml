@@ -24,7 +24,7 @@ jobs:
           node-version: '14'  # Specify the Node.js version
 
       - name: Install dependencies
-        run: echo "hello world"
+        run: npm install
 
       - name: Run npm audit
         run: npm audit --production --json > audit-results.json
