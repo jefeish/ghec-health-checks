@@ -60,6 +60,8 @@ jobs:
             echo "![npm audit](https://img.shields.io/badge/npm_audit-pass-green)" >> audit-badge.md
           fi
           
+          rm audit-results.json  # Clean up temporary audit results file
+
       - name: Prepend badge content to README.md
         run: |
           # Define the pattern to search for
