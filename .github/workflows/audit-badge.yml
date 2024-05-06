@@ -59,6 +59,8 @@ jobs:
           if [ $total -eq 0 ]; then
             echo "![npm audit](https://img.shields.io/badge/npm_audit-pass-green)" >> audit-badge.md
           fi
+
+          ls -la
           
       - name: Prepend badge content to README.md
         run: |
