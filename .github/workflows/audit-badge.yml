@@ -24,7 +24,7 @@ jobs:
 
       - name: Create audit badge(s)
         run: |
-          let total=0
+
           # Extract info vulnerability count
           info=$(jq -r '.metadata.vulnerabilities.info' audit-results.json)
           if [ $info -ne 0 ]; then
