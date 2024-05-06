@@ -75,7 +75,7 @@ jobs:
           echo "$readme_content" >> new_readme.md
           mv new_readme.md README.md
           rm audit-badge.md  # Clean up temporary badge file
-          
+          cat README.md
       - name: Commit changes
         run: |
           git config --global user.email "github-actions@github.com"
