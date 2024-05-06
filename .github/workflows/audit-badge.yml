@@ -24,6 +24,7 @@ jobs:
 
       - name: Create audit badge(s)
         run: |
+          let total=0
           # Extract info vulnerability count
           info=$(jq -r '.metadata.vulnerabilities.info' audit-results.json)
           if [ $info -ne 0 ]; then
@@ -54,13 +55,10 @@ jobs:
             echo "![npm audit](https://img.shields.io/badge/npm_audit-critical:$critical-darkred)" >> audit-badge.md
           fi
 
-          # Extract total vulnerability count
-          total=$(jq -r '.metadata.vulnerabilities.total' audit-results.json)
-          if [ $total -eq 0 ]; then
+          # if no vulnerabilities are found, add a badge to the README
+          if [ $info -eq 0 ] && [ $low -eq 0 ] && [ $moderate -eq 0 ] && [ $high -eq 0 ] && [ $critical -eq 0 ]; then
             echo "![npm audit](https://img.shields.io/badge/npm_audit-pass-green)" >> audit-badge.md
           fi
-
-          ls -la
           
       - name: Prepend badge content to README.md
         run: |
