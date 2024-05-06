@@ -75,11 +75,16 @@ jobs:
           echo "$readme_content" >> new_readme.md
           mv new_readme.md README.md
           rm audit-badge.md  # Clean up temporary badge file
-          cat README.md
-      - name: Commit changes
+
+      - name: Commit changes to repository
         run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git add README.md
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
           git commit -m "Update README with npm audit badge"
-          git push
+        
+      - name: Push to protected branch
+        uses: CasperWA/push-protected@v2
+        with:
+          token: ${{ secrets.PUSH_TO_PROTECTED_BRANCH }}
+          branch: main
