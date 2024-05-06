@@ -1,4 +1,4 @@
-![wip](docs/images/WIP.png)
+![npm audit](https://img.shields.io/badge/npm_audit-pass-green)
 
 # GHEC Health Check App
 
