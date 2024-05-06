@@ -34,31 +34,31 @@ jobs:
           # Extract info vulnerability count
           info=$(jq -r '.metadata.vulnerabilities.info' audit-results.json)
           if [ $info -ne 0 ]; then
-            echo "<img alt=\"npm audit\" src=\"https://img.shields.io/badge/npm_audit-info:$info-darkgreen\">" > audit-badge.md
+            echo "![audit audit](https://img.shields.io/badge/npm_audit-info:$info-darkgreen)" > audit-badge.md
           fi
 
           # Extract low vulnerability count
           low=$(jq -r '.metadata.vulnerabilities.low' audit-results.json)
           if [ $low -ne 0 ]; then
-            echo "<img alt=\"npm audit\" src=\"https://img.shields.io/badge/npm_audit-low:$low-CA6F1E\">" >> audit-badge.md
+            echo "![audit audit](https://img.shields.io/badge/npm_audit-low:$low-CA6F1E)" >> audit-badge.md
           fi
 
           # Extract moderate vulnerability count
           moderate=$(jq -r '.metadata.vulnerabilities.moderate' audit-results.json)
           if [ $moderate -ne 0 ]; then
-            echo "<img alt=\"npm audit\" src=\"https://img.shields.io/badge/npm_audit-moderate:$moderate-CA6F1E\">" >> audit-badge.md
+            echo "![audit audit](https://img.shields.io/badge/npm_audit-moderate:$moderate-CA6F1E)" >> audit-badge.md
           fi
 
           # Extract high vulnerability count
           high=$(jq -r '.metadata.vulnerabilities.high' audit-results.json)
           if [ $high -ne 0 ]; then
-            echo "<img alt=\"npm audit\" src=\"https://img.shields.io/badge/npm_audit-high:$high-darkred\">" >> audit-badge.md
+            echo "![audit audit](https://img.shields.io/badge/npm_audit-high:$high-darkred)" >> audit-badge.md
           fi
 
           # Extract critical vulnerability count
           critical=$(jq -r '.metadata.vulnerabilities.critical' audit-results.json)
           if [ $critical -ne 0 ]; then
-            echo "<img alt=\"npm audit\" src=\"https://img.shields.io/badge/npm_audit-critical:$critical-darkred\">" >> audit-badge.md
+            echo "![audit audit](https://img.shields.io/badge/npm_audit-critical:$critical-darkred)" >> audit-badge.md
           fi
 
       - name: Prepend badge content to README.md
