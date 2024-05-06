@@ -1,3 +1,5 @@
+<img alt="npm audit" src="https://img.shields.io/badge/npm_audit-moderate:1-CA6F1E">
+<img alt="npm audit" src="https://img.shields.io/badge/npm_audit-high:1-darkred">
 ![wip](docs/images/WIP.png)
 
 # GHEC Health Check App

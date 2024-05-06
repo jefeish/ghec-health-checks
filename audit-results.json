@@ -1,0 +1,126 @@
+{
+  "actions": [
+    {
+      "action": "review",
+      "module": "postcss",
+      "resolves": [
+        {
+          "id": 1094544,
+          "path": "react-scripts>resolve-url-loader>postcss",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "nth-check",
+      "resolves": [
+        {
+          "id": 1095141,
+          "path": "react-scripts>@svgr/webpack>@svgr/plugin-svgo>svgo>css-select>nth-check",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "1094544": {
+      "findings": [
+        {
+          "version": "7.0.39",
+          "paths": [
+            "react-scripts>resolve-url-loader>postcss"
+          ]
+        }
+      ],
+      "metadata": null,
+      "vulnerable_versions": "<8.4.31",
+      "module_name": "postcss",
+      "severity": "moderate",
+      "github_advisory_id": "GHSA-7fh5-64p2-3v2j",
+      "cves": [
+        "CVE-2023-44270"
+      ],
+      "access": "public",
+      "patched_versions": ">=8.4.31",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+      },
+      "updated": "2023-11-05T05:05:37.000Z",
+      "recommendation": "Upgrade to version 8.4.31 or later",
+      "cwe": [
+        "CWE-74",
+        "CWE-144"
+      ],
+      "found_by": null,
+      "deleted": null,
+      "id": 1094544,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2023-44270\n- https://github.com/postcss/postcss/commit/58cc860b4c1707510c9cd1bc1fa30b423a9ad6c5\n- https://github.com/postcss/postcss/blob/main/lib/tokenize.js#L25\n- https://github.com/postcss/postcss/releases/tag/8.4.31\n- https://github.com/github/advisory-database/issues/2820\n- https://github.com/advisories/GHSA-7fh5-64p2-3v2j",
+      "created": "2023-09-30T00:31:10.000Z",
+      "reported_by": null,
+      "title": "PostCSS line return parsing error",
+      "npm_advisory_id": null,
+      "overview": "An issue was discovered in PostCSS before 8.4.31. It affects linters using PostCSS to parse external Cascading Style Sheets (CSS). There may be `\\r` discrepancies, as demonstrated by `@font-face{ font:(\\r/*);}` in a rule.\n\nThis vulnerability affects linters using PostCSS to parse external untrusted CSS. An attacker can prepare CSS in such a way that it will contains parts parsed by PostCSS as a CSS comment. After processing by PostCSS, it will be included in the PostCSS output in CSS nodes (rules, properties) despite being originally included in a comment.",
+      "url": "https://github.com/advisories/GHSA-7fh5-64p2-3v2j"
+    },
+    "1095141": {
+      "findings": [
+        {
+          "version": "1.0.2",
+          "paths": [
+            "react-scripts>@svgr/webpack>@svgr/plugin-svgo>svgo>css-select>nth-check"
+          ]
+        }
+      ],
+      "metadata": null,
+      "vulnerable_versions": "<2.0.1",
+      "module_name": "nth-check",
+      "severity": "high",
+      "github_advisory_id": "GHSA-rp65-9cf3-cjxr",
+      "cves": [
+        "CVE-2021-3803"
+      ],
+      "access": "public",
+      "patched_versions": ">=2.0.1",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "updated": "2023-11-29T22:11:25.000Z",
+      "recommendation": "Upgrade to version 2.0.1 or later",
+      "cwe": [
+        "CWE-1333"
+      ],
+      "found_by": null,
+      "deleted": null,
+      "id": 1095141,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2021-3803\n- https://github.com/fb55/nth-check/commit/9894c1d2010870c351f66c6f6efcf656e26bb726\n- https://huntr.dev/bounties/8cf8cc06-d2cf-4b4e-b42c-99fafb0b04d0\n- https://lists.debian.org/debian-lts-announce/2023/05/msg00023.html\n- https://github.com/advisories/GHSA-rp65-9cf3-cjxr",
+      "created": "2021-09-20T20:47:31.000Z",
+      "reported_by": null,
+      "title": "Inefficient Regular Expression Complexity in nth-check",
+      "npm_advisory_id": null,
+      "overview": "There is a Regular Expression Denial of Service (ReDoS) vulnerability in nth-check that causes a denial of service when parsing crafted invalid CSS nth-checks.\n\nThe ReDoS vulnerabilities of the regex are mainly due to the sub-pattern `\\s*(?:([+-]?)\\s*(\\d+))?` with quantified overlapping adjacency and can be exploited with the following code.\n\n**Proof of Concept**\n```js\n// PoC.js\nvar nthCheck = require(\"nth-check\")\nfor(var i = 1; i <= 50000; i++) {\n    var time = Date.now();\n    var attack_str = '2n' + ' '.repeat(i*10000)+\"!\";\n    try {\n        nthCheck.parse(attack_str) \n    }\n    catch(err) {\n        var time_cost = Date.now() - time;\n        console.log(\"attack_str.length: \" + attack_str.length + \": \" + time_cost+\" ms\")\n    }\n}\n```\n\n**The Output**\n```\nattack_str.length: 10003: 174 ms\nattack_str.length: 20003: 1427 ms\nattack_str.length: 30003: 2602 ms\nattack_str.length: 40003: 4378 ms\nattack_str.length: 50003: 7473 ms\n```",
+      "url": "https://github.com/advisories/GHSA-rp65-9cf3-cjxr"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 1,
+      "critical": 0
+    },
+    "dependencies": 1769,
+    "devDependencies": 0,
+    "optionalDependencies": 3,
+    "totalDependencies": 1772
+  },
+  "runId": "6fd36022-f6c6-49e9-9735-26bbc36b2dc6"
+}
