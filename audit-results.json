@@ -117,10 +117,10 @@
       "high": 1,
       "critical": 0
     },
-    "dependencies": 1777,
+    "dependencies": 1769,
     "devDependencies": 0,
     "optionalDependencies": 3,
-    "totalDependencies": 1780
+    "totalDependencies": 1772
   },
-  "runId": "b6f6ee43-fcee-48e2-996d-11d947e0a699"
+  "runId": "55aeac1f-bad4-4d00-b748-46ed1ddc01ea"
 }
