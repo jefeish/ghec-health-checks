@@ -8,6 +8,8 @@
 <img alt="npm audit" src="https://img.shields.io/badge/npm_audit-high:1-darkred">
 <img alt="npm audit" src="https://img.shields.io/badge/npm_audit-moderate:1-CA6F1E">
 <img alt="npm audit" src="https://img.shields.io/badge/npm_audit-high:1-darkred">
+<img alt="npm audit" src="https://img.shields.io/badge/npm_audit-moderate:1-CA6F1E">
+<img alt="npm audit" src="https://img.shields.io/badge/npm_audit-high:1-darkred">
 ![npm audit](https://img.shields.io/badge/npm_audit-moderate:1-CA6F1E)
 ![npm audit](https://img.shields.io/badge/npm_audit-high:1-darkred)
 
