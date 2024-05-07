@@ -1,4 +1,4 @@
-name: code-badges: npm-audit, license, version
+name: code-badges (npm-audit, license, version etc.)
 
 on:
   workflow_dispatch:  # Enable manual triggering
