@@ -1,3 +1,4 @@
+![License](https://img.shields.io/badge/Node->=_10.13.0-mediumslateblue.svg)
 ![License](https://img.shields.io/badge/License-ISC-blue.svg)
 ![npm audit](https://img.shields.io/badge/npm_audit-pass-green)
 
