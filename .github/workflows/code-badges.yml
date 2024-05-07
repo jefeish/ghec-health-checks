@@ -1,0 +1,143 @@
+name: code-badges: npm-audit, license, version
+
+on:
+  workflow_dispatch:  # Enable manual triggering
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Specify the Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run npm audit
+        run: npm audit --production --json | tee audit-results.json
+
+      - name: Create audit badge(s)
+        run: |
+
+          # Extract info vulnerability count
+          info=$(jq -r '.metadata.vulnerabilities.info' audit-results.json)
+          if [ $info -ne 0 ]; then
+            echo "![npm audit](https://img.shields.io/badge/npm_audit-info:$info-darkgreen)" > audit-badge.md
+          fi
+
+          # Extract low vulnerability count
+          low=$(jq -r '.metadata.vulnerabilities.low' audit-results.json)
+          if [ $low -ne 0 ]; then
+            echo "![npm audit](https://img.shields.io/badge/npm_audit-low:$low-CA6F1E)" >> audit-badge.md
+          fi
+
+          # Extract moderate vulnerability count
+          moderate=$(jq -r '.metadata.vulnerabilities.moderate' audit-results.json)
+          if [ $moderate -ne 0 ]; then
+            echo "![npm audit](https://img.shields.io/badge/npm_audit-moderate:$moderate-CA6F1E)" >> audit-badge.md
+          fi
+
+          # Extract high vulnerability count
+          high=$(jq -r '.metadata.vulnerabilities.high' audit-results.json)
+          if [ $high -ne 0 ]; then
+            echo "![npm audit](https://img.shields.io/badge/npm_audit-high:$high-darkred)" >> audit-badge.md
+          fi
+
+          # Extract critical vulnerability count
+          critical=$(jq -r '.metadata.vulnerabilities.critical' audit-results.json)
+          if [ $critical -ne 0 ]; then
+            echo "![npm audit](https://img.shields.io/badge/npm_audit-critical:$critical-darkred)" >> audit-badge.md
+          fi
+
+          # if no vulnerabilities are found, add a badge to the README
+          if [ $info -eq 0 ] && [ $low -eq 0 ] && [ $moderate -eq 0 ] && [ $high -eq 0 ] && [ $critical -eq 0 ]; then
+            echo "![npm audit](https://img.shields.io/badge/npm_audit-pass-green)" >> audit-badge.md
+          fi
+          
+          rm audit-results.json  # Clean up temporary audit results file
+
+      - name: Prepend badge content to README.md
+        run: |
+          # Define the pattern to search for
+          pattern='\!\[npm audit\]'
+
+          # Create a temporary file to store modified content
+          tmp_file=$(mktemp)
+
+          # Use grep to filter out lines not matching the pattern and write to the temporary file
+          grep -v "^${pattern}" README.md > "$tmp_file"
+
+          # Overwrite README.md with content from the temporary file
+          mv "$tmp_file" README.md
+
+          badge_content=$(cat audit-badge.md)
+          readme_content=$(cat README.md)
+          echo "$badge_content" > new_readme.md
+          echo "$readme_content" >> new_readme.md
+          mv new_readme.md README.md
+          rm audit-badge.md  # Clean up temporary badge file
+
+      - name: Generate License Badge
+        id: license-badge
+        run: |
+          # Check if a License file exists in the repository and create a badge for it
+          if [ -f LICENSE ]; then
+
+            LICENSE_TYPE=$(head -n 1 LICENSE | awk '{print $1}')
+            echo "LICENSE_TYPE: $LICENSE_TYPE"    
+            license_badge=""
+
+            # create a badge for the license
+              if [ "$LICENSE_TYPE" == "MIT" ]; then
+                  echo "License: MIT"
+                  license_badge="![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)"
+              elif [ "$LICENSE_TYPE" == "Apache" ]; then
+                  echo "License: Apache"
+                  license_badge="![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)"
+              else
+                  echo "License: $LICENSE_TYPE"
+                  license_badge="![License](https://img.shields.io/badge/License-$LICENSE_TYPE-blue.svg)"
+              fi
+
+              echo $license_badge > LICENSE_BADGE.md
+          else
+            echo "License file not found"
+          fi
+
+          # Define the pattern to search for
+          pattern='\!\[License\]'
+
+          # Create a temporary file to store modified content
+          tmp_file=$(mktemp)
+
+          # Use grep to filter out lines not matching the pattern and write to the temporary file
+          grep -v "^${pattern}" README.md > "$tmp_file"
+
+          # Overwrite README.md with content from the temporary file
+          mv "$tmp_file" README.md
+
+          badge_content=$(cat LICENSE_BADGE.md)
+          readme_content=$(cat README.md)
+          echo "$badge_content" > new_readme.md
+          echo "$readme_content" >> new_readme.md
+          mv new_readme.md README.md
+          rm LICENSE_BADGE.md  # Clean up temporary badge file
+
+      - name: Commit changes to repository
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Update README with npm audit badge"
+        
+      - name: Push to protected branch
+        uses: CasperWA/push-protected@v2
+        with:
+          token: ${{ secrets.PUSH_TO_PROTECTED_BRANCH }}
+          branch: main

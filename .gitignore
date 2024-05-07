@@ -16,3 +16,6 @@ reports/*.md
 
 tmp/**/*
 !tmp/README.md
+
+
+test.sh
