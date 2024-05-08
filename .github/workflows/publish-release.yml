@@ -1,0 +1,44 @@
+name: Publish Release
+
+on:
+    create:
+        tags:
+          - '*'
+
+jobs:
+    publish_release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                    node-version: '20'
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Publish release
+              env:
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+              run: |
+                    VERSION=$(echo "${{ github.ref }}" | sed -e 's/refs\/tags\///')
+                    echo "Creating release with version $VERSION"
+                    # npm run release -- $VERSION
+                    gh release create $VERSION --title "Release $VERSION" --notes "Release $VERSION"
+
+                    # get repo name without owner
+                    REPO=$(echo "${{ github.repository }}" | sed -e 's/.*\///')
+
+                    # Download source code from release assets for this release version
+                    echo "Downloading release file ${REPO}-${VERSION}.tar.gz"
+                    gh api -H "Accept: application/vnd.github.raw" repos/${{ github.repository }}/tarball/${VERSION} > ${REPO}-${VERSION}.tar.gz
+
+                    # Publish new release on downstream repository and attach release source code as release asset
+                    echo "Publishing release on downstream repository"
+                    gh release create $VERSION --title "${REPO} Release $VERSION" --repo "${{vars.PUBLISH_TARGET}}" --notes "Release $VERSION"
+                    gh release upload --repo "${{vars.PUBLISH_TARGET}}" ${VERSION} ${REPO}-${VERSION}.tar.gz
