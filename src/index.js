@@ -54,23 +54,22 @@ module.exports = (app, { getRouter }) => {
   }
 
   // ---------------------------------------------------------------------------
-  // load App configurations from .github/config.yml and watch for changes
-  // ---------------------------------------------------------------------------
-
-  //read the environment variable for the config file path
-  const configPath = process.cwd() + process.env.HEALTHCHECK_CONFIG_PATH
-
-  // ---------------------------------------------------------------------------
   // load all health check reports from the 'HEALTHCHECK_REPORT_PATH' location 
   // ---------------------------------------------------------------------------
 
   // read the environment variable for the folder path
   const reportPath = process.cwd() + process.env.HEALTHCHECK_REPORT_PATH
 
+  // ---------------------------------------------------------------------------
+  // load App configurations from .github/config.yml and watch for changes
+  // ---------------------------------------------------------------------------
+
+  //read the environment variable for the config file path
+  const configPath = process.cwd() + process.env.HEALTHCHECK_CONFIG_PATH
+
   // initial read of the config file
   config = loadConfig(app, configPath)
-  app.log.info("Load configuration: " + util.inspect(config.health_checks[0].params))
-
+ 
   // Watch for file changes to 'configPath' (yaml)
   fs.watch(configPath, (eventType, filename) => {
     app.log.debug(`Event type: ${eventType}`);
@@ -79,7 +78,6 @@ module.exports = (app, { getRouter }) => {
       app.log.info(`Filename: ${filename}`);
       // reload App configurations from .github/config.yml
       config = loadConfig(app, configPath)
-      app.log.info("Load configuration: " + util.inspect(config))
     } else {
       app.log.error('Filename not provided');
     }
@@ -92,23 +90,55 @@ module.exports = (app, { getRouter }) => {
    * @returns 
    */
   function loadConfig(app, configPath) {
-    app.log.info('Loading Health Check Configuration')
-    // load App configurations from .github/config.yml
-    try {
-      let params = null
-      const config = yaml.load(fs.readFileSync(configPath, 'utf8'))
-      app.log.debug('config: ' + util.inspect(config))
-      const globalVars = config.global_vars;
-      const healthChecks = config.health_checks;
+    app.log.info('Loading Health Check Configuration');
 
-      healthChecks.forEach(check => {
-        check.params = { ...check.params, ...globalVars }; // This will overwrite global_vars with params if they have the same keys
-      });
-      return config
+    try {
+        // Load App configurations from config YAML file
+        const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+        app.log.debug('config: ' + util.inspect(config));
+        const globalParams = config.globals.params;
+        const healthChecks = config.health_checks;
+
+        // Check if 'globals.overwrite' is set to true
+        if (config.globals.overwrite === true) {
+            app.log.info('Overwriting local variables with global variables');
+
+            // Merge globals with params, overwriting existing values and adding missing ones
+            healthChecks.forEach(check => {
+              Object.keys(globalParams).forEach(key => {
+                check.params[key] = globalParams[key];
+              });
+            });
+            app.log.info('OVERWRITE resolved config: ' + util.inspect(config, { showHidden: false, depth: null }))
+
+        } else {
+            app.log.info('Not overwriting local variables with global variables');
+
+            // Merge globals with params, only if the local variable is empty
+            healthChecks.forEach(check => {
+                Object.keys(globalParams).forEach(key => {
+                    if (!(key in check.params) || !check.params[key]) {
+                        check.params[key] = globalParams[key];
+                    }
+                });
+            });
+        }
+
+        // Loop over the health checks and log the parameters
+        healthChecks.forEach(check => {
+            app.log.info('check [' + check.name + ']: ' + util.inspect(check.params));
+        });
+
+        // log the configuration, including nested objects
+        app.log.info('resolved config: ' + util.inspect(config, { showHidden: false, depth: null }))
+
+        return config;
     } catch (err) {
-      app.log.error(err)
+        app.log.error(err);
     }
   }
+
+  // ---------------------------------------------------------------------------  
 
   /**
    * @description Run all the health check reports, as defined in the configuration
@@ -184,7 +214,7 @@ module.exports = (app, { getRouter }) => {
   }
 
   // ---------------------------------------------------------------------------
-  // Start executing the Health Checks based on the configuration (yaml)
+  // Register event based triggering of the Health Checks (Issue Ops)
   // ---------------------------------------------------------------------------
 
   // Trigger on Issue comment '/status' to execute the Health checks

@@ -5,10 +5,12 @@
 # Global variables - these are used across all health checks, unless overridden by the health check
 globals:
   # true - overwrite the individual health check's parameter with the global parameter (based on the matching key)
-  # false - the individual health check's repo parameter will be used, if it is defined
+  # false - the individual health check parameter will be used, if it is defined
   overwrite: false
   params:
     repo: "https://github.com/jefeish/foo-bar.git"
+    branch: "feature-branch"
+    owner: "jefeish"
 
 # Health checks - each health check is defined by a name, description, type, severity, message, and parameters
 # name: the health check, the name has to match the name of the health check file (.js)

@@ -1,7 +1,7 @@
 # .github/workflows/test.yml
 name: Code-Coverage
 
-on: [push, pull_request, workflow_dispatch]
+on: [pull_request, workflow_dispatch]
 jobs:
   test:
     runs-on: ubuntu-latest
