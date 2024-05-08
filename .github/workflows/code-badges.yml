@@ -128,6 +128,35 @@ jobs:
           mv new_readme.md README.md
           rm LICENSE_BADGE.md  # Clean up temporary badge file
 
+      - name: Node version requirements
+        run: |
+          # check if a node package file exists in the repository
+          if [ -f package.json ]; then
+            node_version=$(jq -r '.engines.node' package.json | tr ' ' '_')
+            echo "Node Version: $node_version"
+            node_version_badge="![License](https://img.shields.io/badge/Node-$node_version-mediumslateblue.svg)"
+            echo "$node_version_badge" > VERSION_BADGE.md
+          fi
+
+          # Define the pattern to search for
+          pattern='\!\[Node\]'
+
+          # Create a temporary file to store modified content
+          tmp_file=$(mktemp)
+
+          # Use grep to filter out lines not matching the pattern and write to the temporary file
+          grep -v "^${pattern}" README.md > "$tmp_file"
+
+          # Overwrite README.md with content from the temporary file
+          mv "$tmp_file" README.md
+
+          badge_content=$(cat VERSION_BADGE.md)
+          readme_content=$(cat README.md)
+          echo "$badge_content" > new_readme.md
+          echo "$readme_content" >> new_readme.md
+          mv new_readme.md README.md
+          rm VERSION_BADGE.md  # Clean up temporary badge file
+          
       - name: Commit changes to repository
         run: |
           git config --local user.email "action@github.com"
