@@ -1,0 +1,60 @@
+name: publish release artifact
+
+on:
+  push:
+    tags:
+      - 'v*' # Only trigger on tags starting with 'v' (assuming semantic versioning format)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+      PUBLISH_TARGET: githubcustomers/citi
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get latest local tag
+        id: get_local_tag
+        run: |
+          git fetch --tags
+          LOCAL_TAG=$(git describe --tags --abbrev=0 $(git rev-list --tags --max-count=1))
+          echo "LOCAL_TAG: $LOCAL_TAG"
+          echo ::set-output name=LOCAL_TAG::$LOCAL_TAG
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          # Get the latest tag from the downstream repository
+          LATEST_TAG=$(gh api repos/${{vars.PUBLISH_TARGET}}/tags --paginate | jq -r 'map(select(.name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))) | map(.name | ltrimstr("v")) | sort_by(. | split(".") | map(tonumber)) | last')
+          
+          echo "Latest tag in the downstream repository: $LATEST_TAG"
+
+          MAJOR=$(echo $LATEST_TAG | cut -d. -f1)
+          MINOR=$(echo $LATEST_TAG | cut -d. -f2)
+          PATCH=$(( $(echo $LATEST_TAG | cut -d. -f3) + 1))
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          VERSION=$NEW_TAG
+          echo "NEW_TAG: $NEW_TAG"
+          echo ::set-output name=NEW_TAG::$NEW_TAG
+  
+      - name: Zip release code
+        run: |
+          zip -r ghec-health-check-artifact_${{ steps.get_local_tag.outputs.LOCAL_TAG }}.zip . --exclude=".git/*"
+
+      - name: Upload release asset to another Repo
+        run: |
+          ARTIFACT=ghec-health-check-artifact
+          TARGET_VERSION=${{ steps.next_version.outputs.NEW_TAG }}
+          LOCAL_TAG=${{ steps.get_local_tag.outputs.LOCAL_TAG }}
+
+          # Publish new release on downstream repository and attach release source code as release asset
+          echo "Creating release on downstream repository"
+          gh release create ${TARGET_VERSION} --title "${ARTIFACT} Release ${TARGET_VERSION}" --repo "${{ env.PUBLISH_TARGET }}" --notes "Release ${TARGET_VERSION}"
+      
+          # Upload the .zip file as a release asset
+          echo "Uploading release asset"
+          gh release upload --repo ${{ env.PUBLISH_TARGET }} ${TARGET_VERSION} ${ARTIFACT}_${LOCAL_TAG}.zip --clobber
