@@ -1,5 +1,19 @@
 name: publish release artifact
 
+# ----------------------------------------------------------------------------------------------------------------------------------
+# This workflow automates the process of tagging, packaging, and publishing a release artifact to a downstream repository
+# whenever a new version is tagged in the source repository.
+# It it triggered by the creation of another TAG in the source repository.
+# It reads the latest TAG version fron the downstream repository, creates the next version of a TAG on th downstrem repository
+# and attaches the newly created artifact (.zip) from the source repository to the downstream repos new TAG. 
+#
+# Example:
+# Source Repo new TAG: v0.0.15
+# Downstream Repo current latest TAG: v0.0.33
+# The resulting Release TAG on the downstream repo will be: v0.0.34 with artifact <source-repo-name>_v0.0.15.zip
+# Each artifact attachement to the downstream repo will create a new release on that repo.
+# ----------------------------------------------------------------------------------------------------------------------------------
+
 on:
   push:
     tags:
