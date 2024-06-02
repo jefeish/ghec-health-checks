@@ -3,7 +3,7 @@ name: publish release artifact
 on:
   push:
     tags:
-      - 'v*' # Only trigger on tags starting with 'v' (assuming semantic versioning format)
+      - 'v*.*.*' # Only trigger on tags starting with 'v' (assuming semantic versioning format)
 
 jobs:
   release:
