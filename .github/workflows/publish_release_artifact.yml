@@ -43,7 +43,7 @@ jobs:
         id: next_version
         run: |
           # Get the latest tag from the downstream repository
-          LATEST_TAG=$(gh api repos/${{vars.PUBLISH_TARGET}}/tags --paginate | jq -r 'map(select(.name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))) | map(.name | ltrimstr("v")) | sort_by(. | split(".") | map(tonumber)) | last')
+          LATEST_TAG=$(gh api repos/${{env.PUBLISH_TARGET}}/tags --paginate | jq -r 'map(select(.name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))) | map(.name | ltrimstr("v")) | sort_by(. | split(".") | map(tonumber)) | last')
           
           echo "Latest tag in the downstream repository: $LATEST_TAG"
 
