@@ -4,14 +4,17 @@
  */
 
 const Command = require('./common/command.js')
+const fs = require('fs-extra');
+const simpleGit = require('simple-git');
 let instance = null
-
 
 class check_repo_pr_close extends Command {
   
   // eslint-disable-next-line no-useless-constructor
   constructor() {
     super()
+    this.git = simpleGit();
+    this.destinationPath = '';
   }
 
   /**

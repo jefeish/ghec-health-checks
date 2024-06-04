@@ -36,7 +36,6 @@ class markdownReportIssue extends Command {
     try {
       console.log('....markdownReportIssue:config: ', config)
       const issueComment = markdownReport(jsonData)
-
       const comment = await context.octokit.issues.createComment({
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,

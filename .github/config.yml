@@ -8,8 +8,8 @@ globals:
   # false - the individual health check parameter will be used, if it is defined
   overwrite: false
   params:
-    repo: "https://github.com/jefeish/foo-bar.git"
-    branch: "feature-branch"
+    repo: "https://github.com/jefeish/test-health-check.git"
+    branch: "jefeish/patch-1"
     owner: "jefeish"
 
 # Health checks - each health check is defined by a name, description, type, severity, message, and parameters
@@ -22,40 +22,34 @@ globals:
 # params: the parameters for the health check. They are specific to the health check
 health_checks:
   - name: "check_repo_clone"
-    description: standard repository checks (clone, push, PR)
+    description: standard repository checks (clone)
     type: "repo"
     severity: "critical"
     message: "This is a custom message"
     params:
       repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
       branch: "" # optional: default is "main"
+      target: "/tmp"
 
   - name: "check_repo_commit"
-    description: Commit to a branch via 'git'
+    description: standard repository checks (push)
     type: "repo"
     severity: "medium"
     message: "This is a custom message"
     params:
       repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
       branch: "main" # optional: default is "main"
+      target: "/tmp"
 
-  # - name: "check_repo_commit_api"
-  #   description: Commit to a branch via GitHub API
-  #   type: "repo"
-  #   severity: "medium"
-  #   message: "This is a custom message"
-  #   params:
-  #     repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
-  #     branch: "main" # optional: default is "main"
-
-  # - name: "check_repo_pr_open"
-  #   description: standard repository checks (clone, push, PR)
-  #   type: "repo"
-  #   severity: "low"
-  #   message: "This is a custom message"
-  #   params:
-  #     repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
-  #     branch: "" # optional: default is "main"
+  - name: "check_repo_pr_open"
+    description: standard repository checks (open PR)
+    type: "repo"
+    severity: "low"
+    message: "This is a PR health check"
+    params:
+      repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
+      branch: "jefeish/patch-1"
+      target: "/tmp"
 
   # - name: "check_repo_pr_close"
   #   description: standard repository checks (clone, push, PR)
