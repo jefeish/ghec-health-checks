@@ -4,16 +4,17 @@
  */
 
 const Command = require('./common/command.js')
+const fs = require('fs-extra');
 const simpleGit = require('simple-git');
 let instance = null
-// Initialize simple-git
-const git = simpleGit();
 
 class check_repo_commit extends Command {
 
   // eslint-disable-next-line no-useless-constructor
   constructor() {
     super()
+    this.git = simpleGit();
+    this.destinationPath = '';
   }
 
   /**
@@ -27,90 +28,6 @@ class check_repo_commit extends Command {
     return instance
   }
 
-  async createCommit(context, repositoryUrl, branch) {
-
-    const fs = require('fs');
-    const { promisify } = require('util');
-
-    const exists = promisify(fs.exists);
-
-    // Split the URL by '/' and get the last part
-    const parts = repositoryUrl.split("/");
-    const lastPartWithGit = parts[parts.length - 1];
-
-    // Remove the '.git' extension
-    const repoName = lastPartWithGit.replace(/\.git$/, '');
-    const destinationPath = './tmp/' + repoName;
-
-    console.log('DEBUG: createCommit()');
-
-    // Check if the local repository exists
-    exists(destinationPath).then( (exists) => {
-      if (!exists) {
-        // Clone the repository if it doesn't exist locally
-        git.clone(repositoryUrl, destinationPath).then( () => {
-          console.log('Repository cloned successfully.');
-          this.makeChangesAndPush(destinationPath, branch);
-        }).catch((err) => {
-          console.error('Error cloning repository:', err);
-        });
-      } else {
-        console.log('Repository already exists locally.');
-        // If the repository exists locally, directly make changes and push
-        this.makeChangesAndPush(destinationPath, branch);
-      }
-    }).catch((err) => {
-      console.error('Error checking if repository exists locally:', err);
-    });
-  }
-
-  /**
-   * @description Make changes to the repository and push to remote.
-   * 
-   * @param {*} destinationPath 
-   */
-  async makeChangesAndPush(destinationPath, branch) {
-    console.log('Making changes to the repository...' + destinationPath);
-    // Navigate to the local repository directory
-    process.chdir(destinationPath);
-
-    const commit_file = 'commit-test.txt';  
-    // Commit message
-    const commitMessage = 'test commit from GitHub App';
-
-    // create a temporary file
-    const fs = require('fs');
-    // add a new file to the repository with the content of the current date
-    fs.writeFileSync('./'+ commit_file, new Date().toISOString());
-
-    // log the folder content
-    fs.readdirSync('.').forEach(file => {
-      console.log('log folder content: ' + file);
-    });
-    //print current working directory
-    console.log('git add . - current working directory: ' + process.cwd());
-    // Add files you want to commit (e.g., '.')
-    git.add(commit_file).then(() => {
-      console.log('Files added to commit successfully.');
-      // Commit changes
-      git.commit(commitMessage).then(() => {
-        console.log('Changes committed successfully: ' + commitMessage);
-        // Push changes to remote
-        git.push('origin', branch, (err) => {
-          if (err) {
-            console.error('Error pushing to remote:', err);
-          } else {
-            console.log('Changes pushed to remote repository successfully.');
-          }
-        });
-      }).catch((err) => {
-        console.error('Error committing changes:', err);
-      });
-    }).catch((err) => {
-      console.error('Error adding files to commit:', err);
-    });
-  }
-
   /**
    * @description Main entry point for invocation from client
    * 
@@ -119,17 +36,16 @@ class check_repo_commit extends Command {
    */
   async execute(context, checkConfig) {
 
-    console.log(checkConfig.name + '.execute()')
+    console.log('check_repo_commit.execute()')
     let checkResult = {
       "name": checkConfig.name,
       "description": checkConfig.description,
-      "result": "NA",
-      "status": "NA"
+      "result": "result",
+      "status": "status"
     }
-    console.log('checkConfig:', checkConfig)
 
     try {
-      console.log('inside try 1')
+
       if (typeof checkConfig == 'undefined') {
         checkResult.name = 'checkConfig is not defined',
           checkResult.status = 'fail',
@@ -137,18 +53,12 @@ class check_repo_commit extends Command {
           checkResult.description = 'checkConfig is not defined'
         return checkResult
       }
-      console.log('inside try 2')
+
       // if the context is not defined or the checkConfig is not defined, return an error
       if (context.octokit !== undefined && checkConfig.params !== undefined) {
-        console.log('inside if')
-        // ------------------------------------------------
-        // YOUR CODE HERE !
-        // ------------------------------------------------
 
-        // Define the branch you want to commit to, if the branch is not defined or empty, it will default to 'main'
-        const branch = checkConfig.params.branch || "main";
-        console.log('branch:', branch)
-        await this.createCommit(context, checkConfig.params.repo, branch);
+        console.log("checkConfig: ", checkConfig)
+        checkResult = await this.createCommit(checkConfig);
 
         return checkResult
       }
@@ -168,7 +78,152 @@ class check_repo_commit extends Command {
     }
   }
 
-  // Utilitary function to handle the command
+  /**
+   * @description Clone a repository into a new directory
+   * 
+   * @param {*} checkConfig
+   * @returns 
+   */
+  async cloneRepository(checkConfig) {
+    // Split the URL by '/' and get the last part
+    const repositoryUrl = checkConfig.params.repo;
+    const parts = repositoryUrl.split("/");
+    const lastPartWithGit = parts[parts.length - 1];
+
+    // Remove the '.git' extension
+    const repoName = lastPartWithGit.replace(/\.git$/, '');
+    this.destinationPath = checkConfig.params.target + '/' + repoName;
+
+    // Remove the local repository if it exists
+    await this.removeLocalRepository(this.destinationPath, checkConfig)
+
+    console.log('Cloning repository:', repositoryUrl, 'to:', this.destinationPath)
+
+    return new Promise((resolve, reject) => {
+      this.git.clone(repositoryUrl, this.destinationPath, (error, result) => {
+        if (error) {
+          console.error('Error cloning repository [' + this.destinationPath + ']:', error);
+          console.log('Result:', result);
+          reject(error);
+        } else {
+          console.log('Repository [' + this.destinationPath + '] cloned successfully: ', result);
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  /**
+   * @description remove the local repository
+   * 1. check if the directory exists
+   * 2. remove the directory
+   * 
+   * @param {*} directoryPath 
+   * @param {*} checkConfig
+   */
+  async removeLocalRepository(directoryPath, checkConfig) {
+    console.log('\n\n ---------------------------------------------------\n Checking for directory: >' + directoryPath + '<\n ---------------------------------------------------\n\n');
+
+    try {
+      // check if the directory exists
+      if (fs.existsSync(directoryPath)) {
+        console.log('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< Exists!\n ---------------------------------------------------\n\n');
+
+        await fs.remove(directoryPath);
+        console.log('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< removed successfully.\n ---------------------------------------------------\n\n');
+      }
+    } catch (error) {
+      console.error('Error removing directory >' + directoryPath + '<:' + error);
+    }
+    // log the folder current contents
+    fs.readdirSync(checkConfig.params.target + '/').forEach(file => {
+      console.log('DEBUG: ' + checkConfig.params.target + '/' + file);
+    });
+  }
+
+  /**
+   * @description Create a commit in the cloned repository
+   * @param {*} checkConfig 
+   * @returns 
+   */
+  async createCommit(checkConfig) {
+    try {
+      const timestamp = new Date().getTime();
+      // format the timestamp to a readable date
+      const date = new Date(timestamp).toUTCString();
+
+      console.log("checkConfig: ", checkConfig)
+      console.log("checkConfig.params.repo: ", checkConfig.params.repo)
+      const repoPath = checkConfig.params.target + '/' + checkConfig.params.repo.split('/').pop().replace('.git', '');
+      console.log("repoPath: ", repoPath)
+
+      // initialize the git repository
+      await this.cloneRepository(checkConfig)
+      console.log('Repository cloned to:', repoPath);
+
+      // create new file content using the timestamp
+      const fileContent = `console.log('Updated code: ${date}');`;
+
+      // File path
+      const filePath = repoPath + '/example.js';
+
+      // Create a new file with the code change
+      require('fs').writeFileSync(filePath, fileContent, 'utf-8');
+
+      // debug: print the file content and list the files in the directory
+      console.log('File content:', fileContent);
+      console.log('Files in the directory:', require('fs').readdirSync(repoPath));
+
+      // Change working directory to the cloned repository
+      await this.git.cwd(repoPath);
+
+      console.log('Changed working directory to:', repoPath);
+
+      //print a git status
+      console.log('Git status:', await this.git.status());
+
+      // Add the file to the staging area
+      this.git.add(filePath)
+        // Commit the changes with a commit message
+        .commit('updated example.js', (error, result) => {
+          if (error) {
+            console.error('Error occurred while committing:', error);
+            return;
+          }
+          console.log('Changes committed successfully:', result);
+          // Push the changes to the origin
+          this.git.push('origin', checkConfig.params.branch || 'main', (pushError, pushResult) => {
+            if (pushError) {
+              console.error('Error occurred while pushing:', pushError);
+              return;
+            }
+            console.log('Changes pushed successfully:', pushResult);
+          });
+        });
+    } catch (error) {
+      console.error('Error occurred while creating a commit:', error);
+      // escape the 'error' object to a string, excluding all '|' characters
+      error = JSON.stringify(error).replace(/\|/g, '');
+
+      return {
+        "name": checkConfig.name,
+        "description": checkConfig.description,
+        "result": error,
+        "status": "fail"
+      }
+    }
+
+    // await this.removeLocalRepository(this.destinationPath)
+
+    const checkResult = {
+      "name": checkConfig.name,
+      "description": checkConfig.description,
+      "result": "commit created successfully",
+      "status": "pass"
+    }
+
+    return checkResult
+  }
 
 }
 

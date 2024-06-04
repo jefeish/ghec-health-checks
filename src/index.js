@@ -295,6 +295,7 @@ async function executeHealthChecks(app, context, config) {
       const end = process.hrtime.bigint();
       const elapsed = Number(end - start) / 1000000
       // add the elapsed time to the result JSON
+      result.severity = check.severity
       result.elapsed = elapsed + ' ms'
       reportCollection.push(result)
     };
