@@ -32,9 +32,9 @@ health_checks:
       target: "/tmp"
 
   - name: "check_repo_commit"
-    description: standard repository checks (push)
+    description: standard repository checks (clone, commit, push)
     type: "repo"
-    severity: "medium"
+    severity: "critical"
     message: "This is a custom message"
     params:
       repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
@@ -42,24 +42,48 @@ health_checks:
       target: "/tmp"
 
   - name: "check_repo_pr_open"
-    description: standard repository checks (open PR)
+    description: standard repository checks (clone, branch, commit, push, open PR)
     type: "repo"
-    severity: "low"
+    severity: "high"
     message: "This is a PR health check"
     params:
       repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
       branch: "jefeish/patch-1"
       target: "/tmp"
 
-  # - name: "check_repo_pr_close"
-  #   description: standard repository checks (clone, push, PR)
-  #   type: "repo"
-  #   severity: "high"
-  #   message: "This is a custom message"
-  #   params:
-  #     repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
-  #     branch: "" # optional: default is "main"
+  - name: "check_repo_pr_close"
+    description: standard repository checks (close PR)
+    type: "repo"
+    severity: "high"
+    message: "This is a custom message"
+    params:
+      repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
+      branch: "jefeish/patch-1"
 
+  - name: "check_issue_create"
+    description: standard Issue checks (open issue)
+    type: "issue"
+    severity: "low"
+    message: "This is a custom message"
+    params:
+      repo: "test-health-check" # required: repository name
+      
+  - name: "check_issue_comment"
+    description: standard Issue checks (comment issue)
+    type: "issue"
+    severity: "low"
+    message: "This is a custom message"
+    params:
+      repo: "test-health-check" # required: repository name
+          
+  - name: "check_issue_close"
+    description: standard Issue checks (close issue)
+    type: "issue"
+    severity: "low"
+    message: "This is a custom message"
+    params:
+      repo: "test-health-check" # required: repository name
+    
 # Reports - each report is defined by a name, description, and parameters
 #
 # name: the report, the name has to match the name of the report file (.js)
@@ -74,10 +98,10 @@ reports:
     params:
       path: "./reports/report.md"
       
-  # - name: "csvReportFile"
-  #   description: "CSV report"
-  #   params:
-  #     path: "./reports/report.csv"   
+  - name: "csvReportFile"
+    description: "CSV report"
+    params:
+      path: "./reports/report.csv"   
 
   - name: "jsonReportFile"
     description: "JSON report"

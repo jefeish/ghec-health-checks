@@ -8,6 +8,7 @@ const fs = require('fs-extra');
 const simpleGit = require('simple-git');
 const util = require('util');
 const { exec } = require('child_process');
+const { data } = require('jquery');
 let instance = null
 
 
@@ -162,7 +163,9 @@ class check_repo_pr_open extends Command {
    * @param {*} branchName
    * @returns
    */
-  async createPR(context ,checkConfig) {
+  async createPR(context, checkConfig) {
+    let response = null;
+
     try {
       const timestamp = new Date().getTime();
       // format the timestamp to a readable date
@@ -170,7 +173,8 @@ class check_repo_pr_open extends Command {
 
       console.log("checkConfig: ", checkConfig)
       console.log("checkConfig.params.repo: ", checkConfig.params.repo)
-      const repoPath = checkConfig.params.target + '/' + checkConfig.params.repo.split('/').pop().replace('.git', '');
+      const repoName = checkConfig.params.repo.split('/').pop().replace('.git', '');
+      const repoPath = checkConfig.params.target + '/' + repoName;
       console.log("repoPath: ", repoPath)
 
       // Change working directory to the cloned repository
@@ -289,12 +293,13 @@ class check_repo_pr_open extends Command {
       // Create the PR
       // ------------------------------------------------
       console.log('create PR')
-      const response = await context.octokit.pulls.create({
-        owner: "jefeish",
-        repo: "test-health-check",
-        title: "Health Check Pull Request",
+
+      response = await context.octokit.pulls.create({
+        owner: context.payload.repository.owner.login,
+        repo: repoName,
+        title: checkConfig.name,
         body: "This is an automated pull request created by the health check.",
-        head: "jefeish/patch-1",
+        head: checkConfig.params.branch,
         base: "main",
       });
   
@@ -325,7 +330,7 @@ class check_repo_pr_open extends Command {
     return {
       "name": checkConfig.name,
       "description": checkConfig.description,
-      "result": "PR created successfully",
+      "result": "PR #"+  response.data.number +" created",
       "status": "pass"
     }
   }

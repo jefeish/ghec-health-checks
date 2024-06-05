@@ -8,7 +8,7 @@ const fs = require('fs-extra');
 const simpleGit = require('simple-git');
 let instance = null
 
-class check_repo_pr_close extends Command {
+class check_issue_create extends Command {
   
   // eslint-disable-next-line no-useless-constructor
   constructor() {
@@ -22,7 +22,7 @@ class check_repo_pr_close extends Command {
    */
   static getInstance() {
     if (!instance) {
-      instance = new check_repo_pr_close()
+      instance = new check_issue_create()
     }
 
     return instance
@@ -57,47 +57,45 @@ class check_repo_pr_close extends Command {
       // if the context is not defined or the checkConfig is not defined, return an error
       if (context.octokit !== undefined && checkConfig.params !== undefined) {
         
-        const repoName = checkConfig.params.repo.split('/').pop().replace('.git', '');
-        console.log("repoPath: ", repoName)
+        const repoName = checkConfig.params.repo
+        console.log("repoName: ", repoName)
 
         // ------------------------------------------------
-        // Get the PR
+        // list Issues
         // ------------------------------------------------
-        const r1 = await context.octokit.pulls.list({
+
+        const r1 = await context.octokit.issues.listForRepo({
           owner: context.payload.repository.owner.login,
           repo: repoName,
-          head: checkConfig.params.branch,
           state: 'open',
         });
 
         // if the 'data' object is empty, then return an error
         if (r1.data.length == 0) {
-          console.log('WARNING - ' + checkConfig.name + ': PR not found')
-          checkResult.name = checkConfig.name
+          console.log('WARNING - '+ checkConfig.name +': no open issues found')
           checkResult.status = 'fail'
-          checkResult.result = 'No open PR found'
+          checkResult.result = 'no open issues found'
           checkResult.description = checkConfig.description
-
           return checkResult
         }
-
-        console.log('Pull #: ', r1.data[0].number)
+        
+        console.log('Issue #: ', r1.data[0].number)
 
         // ------------------------------------------------
-        // Merge the PR
+        // comment Issue
         // ------------------------------------------------
-        const r2 = await context.octokit.pulls.merge({
+        const r2 = await context.octokit.issues.createComment({
           owner: context.payload.repository.owner.login,
           repo: repoName,
-          pull_number: r1.data[0].number,
+          issue_number: r1.data[0].number,
+          body: 'Issue comment created by `check_issue_create`',
         });
 
-        console.log('r2: ', r2)
-
+        console.log('Issue #: ', r2)
 
         checkResult.name = checkConfig.name
         checkResult.status = 'pass'
-        checkResult.result = 'PR #' + r1.data[0].number + ' merged'
+        checkResult.result = 'Issue #' + r1.data[0].number +' [comment]('+ r2.data.html_url + ') commented'
         checkResult.description = checkConfig.description
         
         return checkResult
@@ -121,4 +119,4 @@ class check_repo_pr_close extends Command {
   }
 }
 
-module.exports = check_repo_pr_close
+module.exports = check_issue_create

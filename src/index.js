@@ -288,15 +288,19 @@ async function executeHealthChecks(app, context, config) {
       if (!result.hasOwnProperty('name') || !result.hasOwnProperty('description') || !result.hasOwnProperty('result') || !result.hasOwnProperty('status')) {
         result.name = check.name
         result.description = check.description
+        result.type = check.type
         result.severity = check.severity
         result.status = 'error'
         result.result = 'invalid result format'
       }
       const end = process.hrtime.bigint();
       const elapsed = Number(end - start) / 1000000
+      // format elapsed time to 2 digits after the decimal point
+      const formattedElapsed = elapsed.toFixed(2);
       // add the elapsed time to the result JSON
+      result.type = check.type
       result.severity = check.severity
-      result.elapsed = elapsed + ' ms'
+      result.elapsed = formattedElapsed + 'ms'
       reportCollection.push(result)
     };
   } catch (error) {
@@ -305,6 +309,7 @@ async function executeHealthChecks(app, context, config) {
     app.log.error('Error executing health checks: ' + error)
     result.name = 'NA'
     result.description = 'NA'
+    result.type = check.type
     result.severity = 'NA'
     result.status = 'error'
     result.result = error.message.replace(/\|/g, '\\|').replace(/\n/g, '<br />');
