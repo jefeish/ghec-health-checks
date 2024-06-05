@@ -6,11 +6,8 @@
 const Command = require('./common/command.js')
 const fs = require('fs-extra');
 const simpleGit = require('simple-git');
-<<<<<<< HEAD
 const util = require('util');
 const { exec } = require('child_process');
-=======
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
 let instance = null
 
 
@@ -65,7 +62,6 @@ class check_repo_pr_open extends Command {
         // ------------------------------------------------
         // YOUR CODE HERE !
         // ------------------------------------------------
-        checkResult = await this.createPR(context, checkConfig)
 
         // Split the URL by '/' and get the last part
         const repositoryUrl = checkConfig.params.repo;
@@ -108,11 +104,7 @@ class check_repo_pr_open extends Command {
       return checkResult
     }
   }
-<<<<<<< HEAD
   
-=======
-
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
   /**
    * @description
    * 
@@ -120,7 +112,6 @@ class check_repo_pr_open extends Command {
    * @param {*} destinationPath 
    * @returns 
    */
-<<<<<<< HEAD
   async cloneRepository(repositoryUrl, destinationPath) {
 
     console.log('Cloning repository:', repositoryUrl, 'to:', destinationPath)
@@ -133,31 +124,6 @@ class check_repo_pr_open extends Command {
           reject(error);
         } else {
           console.log('Repository [' + destinationPath + '] cloned successfully: ', result);
-=======
-  async cloneRepository(checkConfig) {
-    // Split the URL by '/' and get the last part
-    const repositoryUrl = checkConfig.params.repo;
-    const parts = repositoryUrl.split("/");
-    const lastPartWithGit = parts[parts.length - 1];
-
-    // Remove the '.git' extension
-    const repoName = lastPartWithGit.replace(/\.git$/, '');
-    this.destinationPath = checkConfig.params.target + '/' + repoName;
-
-    // Remove the local repository if it exists
-    await this.removeLocalRepository(this.destinationPath, checkConfig)
-
-    console.log('Cloning repository:', repositoryUrl, 'to:', this.destinationPath)
-
-    return new Promise((resolve, reject) => {
-      this.git.clone(repositoryUrl, this.destinationPath, (error, result) => {
-        if (error) {
-          console.error('Error cloning repository [' + this.destinationPath + ']:', error);
-          console.log('Result:', result);
-          reject(error);
-        } else {
-          console.log('Repository [' + this.destinationPath + '] cloned successfully: ', result);
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
           resolve(true);
         }
       });
@@ -169,7 +135,6 @@ class check_repo_pr_open extends Command {
    * 1. check if the directory exists
    * 2. remove the directory
    * 
-<<<<<<< HEAD
    * @param {*} repoPath 
    */
   async removeLocalRepository(repoPath) {
@@ -190,28 +155,6 @@ class check_repo_pr_open extends Command {
     // fs.readdirSync(checkConfig.params.target + '/').forEach(file => {
     //   console.log('DEBUG: ' + checkConfig.params.target + '/' + file);
     // });
-=======
-   * @param {*} directoryPath 
-   */
-  async removeLocalRepository(directoryPath, checkConfig) {
-    console.log('\n\n ---------------------------------------------------\n Checking for directory: >' + directoryPath + '<\n ---------------------------------------------------\n\n');
-
-    try {
-      // check if the directory exists
-      if (fs.existsSync(directoryPath)) {
-        console.log('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< Exists!\n ---------------------------------------------------\n\n');
-
-        await fs.remove(directoryPath);
-        console.log('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< removed successfully.\n ---------------------------------------------------\n\n');
-      }
-    } catch (error) {
-      console.error('Error removing directory >' + directoryPath + '<:' + error);
-    }
-    // log the folder current contents
-    fs.readdirSync(checkConfig.params.target + '/').forEach(file => {
-      console.log('DEBUG: ' + checkConfig.params.target + '/' + file);
-    });
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
   }
 
   /**
@@ -230,7 +173,6 @@ class check_repo_pr_open extends Command {
       const repoPath = checkConfig.params.target + '/' + checkConfig.params.repo.split('/').pop().replace('.git', '');
       console.log("repoPath: ", repoPath)
 
-<<<<<<< HEAD
       // Change working directory to the cloned repository
       await this.git.cwd(repoPath);
       console.log('Changed working directory to:', repoPath);
@@ -242,17 +184,6 @@ class check_repo_pr_open extends Command {
             return;
         }        
       });
-=======
-      // initialize the git repository
-      await this.cloneRepository(checkConfig)
-      console.log('Repository cloned to:', repoPath);
-
-      // Change working directory to the cloned repository
-      await this.git.cwd(repoPath);
-      console.log('Changed working directory to:', repoPath);
-
-      await this.git.pull('origin', checkConfig.params.branch);
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
 
       // ------------------------------------------------
       // SWITCH TO THE BRANCH
@@ -278,7 +209,6 @@ class check_repo_pr_open extends Command {
           if (branchExists) {
             await this.git.checkout(branchName);
             console.log('Switched to branch:', branchName);
-<<<<<<< HEAD
 
             // pull the latest changes from the remote repository branch
             await this.git.pull('origin', branchName, (pullError) => {
@@ -298,11 +228,6 @@ class check_repo_pr_open extends Command {
                 return;
               }
             });
-=======
-          } else {
-            await this.git.checkoutLocalBranch(branchName);
-            console.log('Created and switched to branch:', branchName);
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
           }
         } catch (error) {
           console.error('Error creating or switching to branch:', error);
@@ -351,27 +276,18 @@ class check_repo_pr_open extends Command {
       });
 
       // Push the changes to the branch and create the upstream branch
-<<<<<<< HEAD
       await this.git.push('origin', checkConfig.params.branch || 'patch-1', {'--set-upstream': null}, async (pushError, pushResult) => {
-=======
-      await this.git.push('origin', checkConfig.params.branch || 'patch-1', {'--set-upstream': null}, (pushError, pushResult) => {
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
         if (pushError) {
           console.error('Error occurred while pushing:', pushError);
           return;
         }
 
-<<<<<<< HEAD
         console.log('Pushed changes successfully:', pushResult);
-=======
-        console.log('Changes pushed successfully:', pushResult);
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
       });
 
       // ------------------------------------------------
       // Create the PR
       // ------------------------------------------------
-<<<<<<< HEAD
       console.log('create PR')
       const response = await context.octokit.pulls.create({
         owner: "jefeish",
@@ -397,62 +313,15 @@ class check_repo_pr_open extends Command {
           "status": "pass"
         }
       }
-=======
-      try {
-        const response = await context.octokit.pulls.create({
-          owner: context.payload.repository.owner.login,
-          repo: checkConfig.params.repo,
-          title: checkConfig.description,
-          body: checkConfig.message,
-          head: checkConfig.params.branch,
-          base: 'main',
-          headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-          }
-        });
-    
-        console.log('Pull request created:', response.data.html_url);
-      } catch (error) {
-        console.error('Error creating pull request:', error.message);
-        throw error;
-      }
-
-      // await octokit.request('POST /repos/{owner}/{repo}/pulls', {
-      //   owner: 'OWNER',
-      //   repo: 'REPO',
-      //   title: 'Amazing new feature',
-      //   body: 'Please pull these awesome changes in!',
-      //   head: 'octocat:new-feature',
-      //   base: 'master',
-      //   headers: {
-      //     'X-GitHub-Api-Version': '2022-11-28'
-      //   }
-      // })
-
-    } catch (error) {
-      console.error('Error occurred while creating a commit:', error);
-      // escape the 'error' object to a string, excluding all '|' characters
-      error = JSON.stringify(error.message).replace(/\|/g, '');
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
 
       return {
         "name": checkConfig.name,
         "description": checkConfig.description,
-<<<<<<< HEAD
         "result": error,
         "status": "fail"
       }    
     }
 
-=======
-        "result": error.message,
-        "status": "fail"
-      }
-    }
-
-    await this.removeLocalRepository(this.destinationPath)
-
->>>>>>> aa2abd6cbee14a525b224edfe49718da0a3caafc
     return {
       "name": checkConfig.name,
       "description": checkConfig.description,
