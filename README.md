@@ -25,7 +25,7 @@ This GitHub App relies on to main components to configure the App,
 
 > **Note:** GitHub Documentation provides detailed information on how to ["Register a GitHub App from a manifest"](https://docs.github.com/en/enterprise-cloud@latest/apps/sharing-github-apps/registering-a-github-app-from-a-manifest).
 
-The Probot framework use the Manifest file to install the Health-Check App. follow these instructions.
+The Probot framework uses the Manifest file to install the Health-Check App. follow these instructions.
 
 #### Explanation of the Manifest Content
 
