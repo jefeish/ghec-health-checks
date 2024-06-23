@@ -4,7 +4,8 @@ import { Octicon } from '@primer/react'
 import {
   SyncIcon,
   XCircleFillIcon,
-  PencilIcon
+  PencilIcon,
+  CheckIcon
 } from '@primer/octicons-react'
 
 import {
@@ -92,14 +93,19 @@ function HealthChecks() {
                 justifyContent: 'space-between',
               }}
             >
-              <div>
-                <h3>{item.name}</h3>
-                <p>{item.description}</p>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <h3 style={{ margin: '0', marginRight: '10px' }}>{item.name}</h3>
+                <p style={{ margin: '0' }}>{item.description}</p>
               </div>
-              {/* Add content for the second column here */}
-              <Button onClick={fetchData} variant="primary" leadingIcon={PencilIcon} sx={{ color: 'white', backgroundColor: 'green', borderRadius: 8, fontWeight: 'bold', marginLeft: 10 }}>
-                Active
-              </Button>
+              {item.state === 'active' ? (
+                <Button onClick={fetchData} variant="primary" leadingIcon={CheckIcon} sx={{ color: 'white', backgroundColor: 'green', borderRadius: 8, fontWeight: 'bold', marginLeft: 10 }}>
+                  Active
+                </Button>
+              ) : (
+                <Button onClick={fetchData} variant="primary" leadingIcon={XCircleFillIcon} sx={{ color: 'white', backgroundColor: 'darkred', borderRadius: 8, fontWeight: 'bold', marginLeft: 10 }}>
+                  Inactive
+                </Button>
+              )}
             </li>
           ))}
         </ul>

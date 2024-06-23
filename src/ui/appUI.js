@@ -43,7 +43,7 @@ class appUI {
         });
 
         this.router.get('/api/checks', (req, res) => {
-            const files = api.healthChecks()
+            const files = api.apiHealthChecks()
             const message = JSON.stringify(files)
             res.send(message);
         })

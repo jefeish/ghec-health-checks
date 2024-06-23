@@ -16,7 +16,7 @@ import {
   
 import YAML from 'yaml';
 
-const YamlEditor = ({ initialData }) => {
+const YamlEditor = ({ initialData, fontSize = '24px', fontFamily = '"Courier New", monospace', backgroundColor = '#333', color = '#fff' }) => {
   const [yamlData, setYamlData] = useState(initialData || '');
     const [error, setError] = useState(null);
     
@@ -48,7 +48,7 @@ const YamlEditor = ({ initialData }) => {
         value={yamlData}
         onChange={handleYamlChange}
         rows={15}
-        style={{ width: '100%' }}
+        style={{ width: '100%', fontSize: fontSize, fontFamily: fontFamily, backgroundColor: backgroundColor, color: color }}
           />
           
       <Button onClick={handleSave} variant="primary" leadingIcon={ChecklistIcon} sx={{ color: 'white', backgroundColor: 'green', borderRadius: 8, fontWeight: 'bold', marginLeft: 10 }}>Save</Button>

@@ -83,6 +83,14 @@ health_checks:
     message: "This is a custom message"
     params:
       repo: "test-health-check" # required: repository name
+
+  - name: "check_url_endpoint"
+    description: "check the URL endpoint: https://copilot-proxy.githubusercontent.com/_ping"
+    type: "endpoint"
+    severity: "low"
+    message: "Testing URL"
+    params:
+      url: "https://copilot-proxy.githubusercontent.com/_ping" 
     
 # Reports - each report is defined by a name, description, and parameters
 #
