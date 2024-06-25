@@ -61,7 +61,6 @@ GitHub provides the GHEC Health status information via https://www.githubstatus.
         severity: "critical"
         message: "This is a custom message"
         params:
-          repo: "https://github.com/jefeish/test-health-check.git" # required: repository name
           titel: "Test Issue" 
           body: "A simple test Issue" # optional
   ```
