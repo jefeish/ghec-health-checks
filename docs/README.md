@@ -41,12 +41,12 @@ GitHub provides the GHEC Health status information via https://www.githubstatus.
   - **Some sample code:**
 
   ```node
-      const issueBody = config.params.body || '';
+      const issueBody = checkConfig.params.body || '';
 
       const issue = await context.octokit.issues.create({
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,
-        title: checkConfig.params,
+        title: checkConfig.params.title,
         body: issueBody
       })
   ```
