@@ -1,11 +1,13 @@
 /**
- * @description Event Handler Class (TEMPLATE).
+ * @description Health-Check Handler Class (TEMPLATE).
  * @param
  * PLEASE REPLACE ALL `change this!` MARKERS WITH YOUR OWN CODE 
  * (including this one)
  */
 
 const Command = require('./common/command.js')
+const { logger } = require('../logger');
+
 let instance = null
 
 
@@ -37,7 +39,7 @@ class checksTemplate extends Command {
    */
   async execute(context, checkConfig) {
 
-    console.log(checkConfig.name +'.execute()')
+    logger.info(checkConfig.name +'.execute()')
     let checkResult = {
       "name": checkConfig.name,
       "description": checkConfig.description,
@@ -65,15 +67,15 @@ class checksTemplate extends Command {
         return checkResult
       }
       else {
-        console.log('WARNING - '+ checkConfig.name +': context is not defined')
+        logger.debug('WARNING - '+ checkConfig.name +': context is not defined')
         checkResult.status = 'fail'
         checkResult.result = 'context is not defined'
         checkResult.description = checkConfig.description
         return checkResult
       }
     } catch (err) {
-      console.log(err)
-      console.log('WARNING - '+ checkConfig.name +': context is not defined')
+      logger.error(err)
+      logger.error('WARNING - '+ checkConfig.name +': context is not defined')
       checkResult.status = 'fail'
       checkResult.result = err.message
       checkResult.description = checkConfig.description

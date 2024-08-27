@@ -1,11 +1,13 @@
 /**
- * @description Event Handler Class (TEMPLATE).
+ * @description Health-Check Handler Class (check_repo_pr_close).
  * @param
  */
 
 const Command = require('./common/command.js')
 const fs = require('fs-extra');
 const simpleGit = require('simple-git');
+const { logger } = require('../logger');
+
 let instance = null
 
 class check_repo_pr_close extends Command {
@@ -36,7 +38,7 @@ class check_repo_pr_close extends Command {
    */
   async execute(context, checkConfig) {
 
-    console.log(checkConfig.name +'.execute()')
+    logger.info(checkConfig.name +'.execute()')
     let checkResult = {
       "name": checkConfig.name,
       "description": checkConfig.description,
@@ -58,7 +60,7 @@ class check_repo_pr_close extends Command {
       if (context.octokit !== undefined && checkConfig.params !== undefined) {
         
         const repoName = checkConfig.params.repo.split('/').pop().replace('.git', '');
-        console.log("repoPath: ", repoName)
+        logger.debug("repoPath: ", repoName)
 
         // ------------------------------------------------
         // Get the PR
@@ -72,7 +74,7 @@ class check_repo_pr_close extends Command {
 
         // if the 'data' object is empty, then return an error
         if (r1.data.length == 0) {
-          console.log('WARNING - ' + checkConfig.name + ': PR not found')
+          logger.debug('WARNING - ' + checkConfig.name + ': PR not found')
           checkResult.name = checkConfig.name
           checkResult.status = 'fail'
           checkResult.result = 'No open PR found'
@@ -81,7 +83,7 @@ class check_repo_pr_close extends Command {
           return checkResult
         }
 
-        console.log('Pull #: ', r1.data[0].number)
+        logger.debug('Pull #: ', r1.data[0].number)
 
         // ------------------------------------------------
         // Merge the PR
@@ -92,7 +94,7 @@ class check_repo_pr_close extends Command {
           pull_number: r1.data[0].number,
         });
 
-        console.log('r2: ', r2)
+        logger.debug('r2: ', r2)
 
 
         checkResult.name = checkConfig.name
@@ -104,15 +106,15 @@ class check_repo_pr_close extends Command {
 
       }
       else {
-        console.log('WARNING - '+ checkConfig.name +': context is not defined')
+        logger.debug('WARNING - '+ checkConfig.name +': context is not defined')
         checkResult.status = 'fail'
         checkResult.result = 'context is not defined'
         checkResult.description = checkConfig.description
         return checkResult
       }
     } catch (err) {
-      console.log(err)
-      console.log('WARNING - '+ checkConfig.name +': context is not defined')
+      logger.debug(err)
+      logger.debug('WARNING - '+ checkConfig.name +': context is not defined')
       checkResult.status = 'fail'
       checkResult.result = err.message
       checkResult.description = checkConfig.description

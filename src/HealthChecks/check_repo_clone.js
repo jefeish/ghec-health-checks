@@ -1,5 +1,6 @@
 /**
- * @description Clone a repository via Git. Using the 'simple-git' package
+ * @description Health-Check Handler Class (check_repo_clone)
+ *              Clone a repository via Git. Using the 'simple-git' package
  *              This approach requires the App environment authentication to be set up
  * @param context
  * @param checkConfig
@@ -8,11 +9,11 @@
 const Command = require('./common/command.js')
 const fs = require('fs-extra');
 const { exec } = require('child_process');
-
 const util = require('util')
 const path = require('path');
-
 const simpleGit = require('simple-git');
+const { logger } = require('../logger');
+
 let instance = null
 
 class check_repo_clone extends Command {
@@ -51,16 +52,16 @@ class check_repo_clone extends Command {
     const repoName = lastPartWithGit.replace(/\.git$/, '');
     const destinationPath = checkConfig.params.target +'/'+ repoName;
 
-    console.log('Cloning repository:', repositoryUrl, 'to:', destinationPath)
+    logger.debug('Cloning repository:', repositoryUrl, 'to:', destinationPath)
 
     return new Promise((resolve, reject) => {
       this.git.clone(repositoryUrl, destinationPath, (error, result) => {
         if (error) {
           console.error('Error cloning repository ['+ destinationPath +']:', error);
-          console.log('Result:', result);
+          logger.debug('Result:', result);
           reject(error);
         } else {
-          console.log('Repository ['+ destinationPath +'] cloned successfully: ', result);
+          logger.debug('Repository ['+ destinationPath +'] cloned successfully: ', result);
           resolve(true);
         }
       });
@@ -75,22 +76,22 @@ class check_repo_clone extends Command {
    * @param {*} directoryPath 
    */
   async removeLocalRepository(directoryPath, checkConfig) {
-    console.log('\n\n ---------------------------------------------------\n Checking for directory: >'+ directoryPath +'<\n ---------------------------------------------------\n\n');
+    logger.debug('\n\n ---------------------------------------------------\n Checking for directory: >'+ directoryPath +'<\n ---------------------------------------------------\n\n');
 
     try {
       // check if the directory exists
       if (fs.existsSync(directoryPath)) {
-        console.log('\n\n ---------------------------------------------------\n Directory >'+ directoryPath +'< Exists!\n ---------------------------------------------------\n\n');
+        logger.debug('\n\n ---------------------------------------------------\n Directory >'+ directoryPath +'< Exists!\n ---------------------------------------------------\n\n');
 
         await fs.remove(directoryPath);
-        console.log('\n\n ---------------------------------------------------\n Directory >'+ directoryPath +'< removed successfully.\n ---------------------------------------------------\n\n');
+        logger.debug('\n\n ---------------------------------------------------\n Directory >'+ directoryPath +'< removed successfully.\n ---------------------------------------------------\n\n');
       }
     } catch (error) {
       console.error('Error removing directory >'+ directoryPath +'<:'+ error);
     }
     // log the folder current contents
     fs.readdirSync(checkConfig.params.target +'/').forEach(file => {
-      console.log('DEBUG: '+ checkConfig.params.target +'/' + file);
+      logger.debug('The folder current contents: '+ checkConfig.params.target +'/' + file);
     });
 
   }
@@ -103,7 +104,7 @@ class check_repo_clone extends Command {
    */
   async execute(context, checkConfig) {
 
-    console.log('check_repo_clone.execute()')
+    logger.info(checkConfig.name +'.execute()')
 
     let checkResult = {
       "name": checkConfig.name,
@@ -115,14 +116,14 @@ class check_repo_clone extends Command {
     try {
       if (typeof checkConfig == 'undefined') {
         checkResult.name = 'checkConfig is not defined',
-          checkResult.status = 'fail',
-          checkResult.result = 'checkConfig is not defined',
-          checkResult.description = 'checkConfig is not defined'
+        checkResult.status = 'fail',
+        checkResult.result = 'checkConfig is not defined',
+        checkResult.description = 'checkConfig is not defined'
         return checkResult
       }
 
       // if the context is not defined or the checkConfig is not defined, return an error
-      if (context.octokit !== undefined && checkConfig.params !== undefined) {
+      if (context.octokit !== undefined || checkConfig.params !== undefined) {
 
         const repositoryUrl = checkConfig.params.repo;
       
@@ -144,7 +145,7 @@ class check_repo_clone extends Command {
           checkResult.description = checkConfig.description
           await this.removeLocalRepository(destinationPath, checkConfig)
         } else {
-          console.log('Failed to clone repository: '+ destinationPath);
+          logger.debug('Failed to clone repository: '+ destinationPath);
           checkResult.status = 'fail'
           checkResult.result = 'Failed to clone repository'
           checkResult.description = checkConfig.description
@@ -154,7 +155,7 @@ class check_repo_clone extends Command {
         return checkResult
       }
       else {
-        console.log('WARNING - ' + checkConfig.name + ': context is not defined')
+        logger.info('WARNING - ' + checkConfig.name + ': context is not defined')
         checkResult.status = 'fail'
         checkResult.result = 'context is not defined'
         checkResult.description = checkConfig.description
@@ -162,7 +163,7 @@ class check_repo_clone extends Command {
         return checkResult
       }
     } catch (err) {
-      console.error('ERROR - ' + checkConfig.name + ': ' + err)
+      console.error('Problem with ' + checkConfig.name + ': ' + err)
       checkResult.status = 'fail'
       checkResult.result = err.message.replace(/\|/g, '\\|').replace(/\n/g, '<br />');
       checkResult.description = checkConfig.description

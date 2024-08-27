@@ -1,5 +1,5 @@
 /**
- * @description Event Handler Class (TEMPLATE).
+ * @description Health-Check Handler Class (check_repo_pr_open).
  * @param
  */
 
@@ -9,6 +9,8 @@ const simpleGit = require('simple-git');
 const util = require('util');
 const { exec } = require('child_process');
 const { data } = require('jquery');
+const { logger } = require('../logger');
+
 let instance = null
 
 
@@ -39,7 +41,7 @@ class check_repo_pr_open extends Command {
    */
   async execute(context, checkConfig) {
 
-    console.log('check_repo_pr_open.execute()')
+    logger.info(checkConfig.name +'.execute()')
     let checkResult = {
       "name": checkConfig.name,
       "description": checkConfig.description,
@@ -73,15 +75,15 @@ class check_repo_pr_open extends Command {
         const repoName = lastPartWithGit.replace(/\.git$/, '');
         const destinationPath = checkConfig.params.target + '/' + repoName;
 
-        console.log('Repository URL:', repositoryUrl);
-        console.log('Destination path:', destinationPath);
+        logger.debug('Repository URL:', repositoryUrl);
+        logger.debug('Destination path:', destinationPath);
 
         // Remove the local repository if it exists
         await this.removeLocalRepository(destinationPath)
 
         // initialize the git repository
         await this.cloneRepository(repositoryUrl, destinationPath) 
-        console.log('Repository cloned to:', destinationPath);
+        logger.debug('Repository cloned to:', destinationPath);
         
         checkResult = await this.createPR(context, checkConfig)
 
@@ -90,15 +92,15 @@ class check_repo_pr_open extends Command {
         return checkResult
       }
       else {
-        console.log('WARNING - ' + checkConfig.name + ': context is not defined')
+        logger.debug('WARNING - ' + checkConfig.name + ': context is not defined')
         checkResult.status = 'fail'
         checkResult.result = 'context is not defined'
         checkResult.description = checkConfig.description
         return checkResult
       }
     } catch (err) {
-      console.log(err)
-      console.log('WARNING - ' + checkConfig.name + ': context is not defined')
+      logger.debug(err)
+      logger.debug('WARNING - ' + checkConfig.name + ': context is not defined')
       checkResult.status = 'fail'
       checkResult.result = err.message
       checkResult.description = checkConfig.description
@@ -115,16 +117,16 @@ class check_repo_pr_open extends Command {
    */
   async cloneRepository(repositoryUrl, destinationPath) {
 
-    console.log('Cloning repository:', repositoryUrl, 'to:', destinationPath)
+    logger.debug('Cloning repository:', repositoryUrl, 'to:', destinationPath)
 
     return new Promise((resolve, reject) => {
       this.git.clone(repositoryUrl, destinationPath, (error, result) => {
         if (error) {
-          console.error('Error cloning repository [' + destinationPath + ']:', error);
-          console.log('Result:', result);
+          logger.error('Error cloning repository [' + destinationPath + ']:', error);
+          logger.debug('Result:', result);
           reject(error);
         } else {
-          console.log('Repository [' + destinationPath + '] cloned successfully: ', result);
+          logger.debug('Repository [' + destinationPath + '] cloned successfully: ', result);
           resolve(true);
         }
       });
@@ -139,22 +141,22 @@ class check_repo_pr_open extends Command {
    * @param {*} repoPath 
    */
   async removeLocalRepository(repoPath) {
-    console.log('\n\n ---------------------------------------------------\n Checking for directory: >' + repoPath + '<\n ---------------------------------------------------\n\n');
+    logger.debug('\n\n ---------------------------------------------------\n Checking for directory: >' + repoPath + '<\n ---------------------------------------------------\n\n');
 
     try {
       // check if the directory exists
       if (fs.existsSync(repoPath)) {
-        console.log('\n\n ---------------------------------------------------\n Directory >' + repoPath + '< Exists!\n ---------------------------------------------------\n\n');
+        logger.debug('\n\n ---------------------------------------------------\n Directory >' + repoPath + '< Exists!\n ---------------------------------------------------\n\n');
 
         await fs.remove(repoPath);
-        console.log('\n\n ---------------------------------------------------\n Directory >' + repoPath + '< removed successfully.\n ---------------------------------------------------\n\n');
+        logger.debug('\n\n ---------------------------------------------------\n Directory >' + repoPath + '< removed successfully.\n ---------------------------------------------------\n\n');
       }
     } catch (error) {
-      console.error('Error removing directory >' + repoPath + '<:' + error);
+      logger.error('Error removing directory >' + repoPath + '<:' + error);
     }
     // log the folder current contents
     // fs.readdirSync(checkConfig.params.target + '/').forEach(file => {
-    //   console.log('DEBUG: ' + checkConfig.params.target + '/' + file);
+    //   logger.debug('DEBUG: ' + checkConfig.params.target + '/' + file);
     // });
   }
 
@@ -171,20 +173,20 @@ class check_repo_pr_open extends Command {
       // format the timestamp to a readable date
       const date = new Date(timestamp).toUTCString();
 
-      console.log("checkConfig: ", checkConfig)
-      console.log("checkConfig.params.repo: ", checkConfig.params.repo)
+      logger.debug("checkConfig: ", checkConfig)
+      logger.debug("checkConfig.params.repo: ", checkConfig.params.repo)
       const repoName = checkConfig.params.repo.split('/').pop().replace('.git', '');
       const repoPath = checkConfig.params.target + '/' + repoName;
-      console.log("repoPath: ", repoPath)
+      logger.debug("repoPath: ", repoPath)
 
       // Change working directory to the cloned repository
       await this.git.cwd(repoPath);
-      console.log('Changed working directory to:', repoPath);
+      logger.debug('Changed working directory to:', repoPath);
       
       // fetch all branches
       await this.git.fetch(['--all'], (fetchError) => {
         if (fetchError) {
-            console.error('Error fetching all branches:', fetchError);
+            logger.error('Error fetching all branches:', fetchError);
             return;
         }        
       });
@@ -197,7 +199,7 @@ class check_repo_pr_open extends Command {
         return new Promise((resolve, reject) => {
           this.git.branchLocal((error, branches) => {
             if (error) {
-              console.error('Error checking branches:', error);
+              logger.error('Error checking branches:', error);
               reject(error);
             } else {
               const exists = branches.all.includes(branchName);
@@ -212,29 +214,29 @@ class check_repo_pr_open extends Command {
           const branchExists = await checkBranchExistence(branchName);
           if (branchExists) {
             await this.git.checkout(branchName);
-            console.log('Switched to branch:', branchName);
+            logger.debug('Switched to branch:', branchName);
 
             // pull the latest changes from the remote repository branch
             await this.git.pull('origin', branchName, (pullError) => {
               if (pullError) {
-                console.error('Error pulling latest changes:', pullError);
+                logger.error('Error pulling latest changes:', pullError);
                 return;
               }
             });
           } else {
             await this.git.checkoutLocalBranch(branchName);
-            console.log('Created and switched to branch:', branchName);
+            logger.debug('Created and switched to branch:', branchName);
                         
             // pull the latest changes from the remote repository branch
             await this.git.pull('origin', branchName, (pullError) => {
               if (pullError) {
-                console.error('Error pulling latest changes:', pullError);
+                logger.error('Error pulling latest changes:', pullError);
                 return;
               }
             });
           }
         } catch (error) {
-          console.error('Error creating or switching to branch:', error);
+          logger.error('Error creating or switching to branch:', error);
           throw error;
         }
       };
@@ -246,7 +248,7 @@ class check_repo_pr_open extends Command {
       // ------------------------------------------------
 
       // create new file content using the timestamp
-      const fileContent = `console.log('Updated code: ${date}');`;
+      const fileContent = `logger.debug('Updated code: ${date}');`;
 
       // File path
       const filePath = repoPath + '/example.js';
@@ -255,16 +257,16 @@ class check_repo_pr_open extends Command {
       await require('fs').writeFileSync(filePath, fileContent, 'utf-8');
 
       // debug: print the file content and list the files in the directory
-      console.log('File content:', fileContent);
-      console.log('Files in the directory:', require('fs').readdirSync(repoPath));
+      logger.debug('File content:', fileContent);
+      logger.debug('Files in the directory:', require('fs').readdirSync(repoPath));
 
       // print a git status
-      console.log('Git status:', await this.git.status());
+      logger.debug('Git status:', await this.git.status());
 
        // Add the file to the staging area
       await this.git.add(filePath, (addError) => {
         if (addError) {
-          console.error('Error occurred while adding:', addError);
+          logger.error('Error occurred while adding:', addError);
           return;
         }
       });
@@ -272,27 +274,27 @@ class check_repo_pr_open extends Command {
       // Commit the changes with a commit message
       await this.git.commit('updated example.js', (commitError, commitResult) => {
         if (commitError) {
-          console.error('Error occurred while committing:', commitError);
+          logger.error('Error occurred while committing:', commitError);
           return;
         }
 
-        console.log('Changes committed successfully:', commitResult);
+        logger.debug('Changes committed successfully:', commitResult);
       });
 
       // Push the changes to the branch and create the upstream branch
       await this.git.push('origin', checkConfig.params.branch || 'patch-1', {'--set-upstream': null}, async (pushError, pushResult) => {
         if (pushError) {
-          console.error('Error occurred while pushing:', pushError);
+          logger.error('Error occurred while pushing:', pushError);
           return;
         }
 
-        console.log('Pushed changes successfully:', pushResult);
+        logger.debug('Pushed changes successfully:', pushResult);
       });
 
       // ------------------------------------------------
       // Create the PR
       // ------------------------------------------------
-      console.log('create PR')
+      logger.debug('create PR')
 
       response = await context.octokit.pulls.create({
         owner: context.payload.repository.owner.login,
@@ -303,9 +305,9 @@ class check_repo_pr_open extends Command {
         base: "main",
       });
   
-      console.log('Pull request created:', util.inspect(response));
+      logger.debug('Pull request created:', util.inspect(response));
     } catch (error) {
-      console.error('Error occurred while creating a PR:', error.response.data.errors[0].message);
+      logger.error('Error occurred while creating a PR:', error.response.data.errors[0].message);
       // escape the 'error' object to a string, excluding all '|' characters
       error = JSON.stringify(error.response.data.errors[0].message).replace(/\|/g, '');
 

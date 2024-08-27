@@ -6,24 +6,28 @@ const api = require('../api.js')
 const fs = require('fs')
 const util = require('util')
 // const favicon = require('serve-favicon');
+const { logger } = require('../logger');
 
 let path = require('path');
 const express = require('express')
+const bodyParser = require('body-parser');
 
 class appUI {
 
     // eslint-disable-next-line no-useless-constructor
     constructor(app, router, webPath) {
-        // console.log("appUI: " + webPath)
+        //console.log("appUI: " + webPath)
         // Get an express router to expose new HTTP endpoints
         this.router = router;
         this.webPath = webPath
         this.app = app
+        this.router.use(bodyParser.json()); // Add this line to parse JSON bodies
+ 
     }
 
     start() {
-        // console.log("appUI: " + this.webPath)
-        // console.log("router: " + util.inspect(this.router))
+        //console.log("appUI: " + this.webPath)
+        //console.log("router: " + util.inspect(this.router))
             
         this.router.use(express.static(path.join(__dirname, './build')));
         // this.router.use(favicon(path.join(__dirname, 'build', 'favicon.ico')));
@@ -37,7 +41,7 @@ class appUI {
         // create routes for the UI
         // ----------------------------------------------------
         this.router.get('/', (req, res) => {
-            console.log("...appUI: " + req.url)
+           console.log("...appUI: " + req.url)
             const index = fs.readFileSync(__dirname + '/build/index.html', 'utf8');
             res.send(index);
         });
@@ -63,16 +67,17 @@ class appUI {
 
         // @description function to save the configuration
         this.router.post('/api/config', (req, res) => {
-            const configData = req.body
-            console.log('config: ' + util.inspect(configData))
-            api.apiSaveConfig(configData)
+           console.log('req: ' + util.inspect(req.body))
+            const { data } = req.body
+           console.log('config: ' + util.inspect(data))
+            api.apiSaveConfig(data)
             res.send('Configuration saved');
         })
 
         this.router.get('/api/reports', (req, res) => {
             const reports = api.apiGetReports()
             const message = JSON.stringify(reports)
-            console.log('reports: ' + util.inspect(message))
+           console.log('get - /api/reports: ' + util.inspect(message))
             res.send(message);
         })
     }

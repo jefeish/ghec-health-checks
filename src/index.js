@@ -1,4 +1,5 @@
 const cron = require('node-cron');
+const { logger, setLogLevel } = require('./logger');
 
 /**
  * This is the main entrypoint to your Probot app
@@ -17,7 +18,7 @@ let config = null
  */
 module.exports = (app, { getRouter }) => {
 
-  app.log('Starting the Health Check - App!')
+  logger.info('Starting the Health Check - App!')
 
   // ---------------------------------------------------------------------------
   // Initialize the Health Check App
@@ -26,20 +27,20 @@ module.exports = (app, { getRouter }) => {
   // initialize the web UI
   const webUI = new ui(app, getRouter('/healthCheck'), null)
   webUI.start()
-  app.log.info('Web UI started')
+  logger.info('Web UI started')
   // log the web UI access URL
-  app.log.info('Web UI access: https://<your-github-app-url>/healthCheck')
+  logger.info('Web UI access: https://<your-github-app-url>/healthCheck')
 
   // if the 'tmp' folder does not exist, create it
   if (!fs.existsSync('./tmp')) {
     fs.mkdirSync('./tmp');
-    app.log.info('tmp/ folder created')
+    logger.debug('tmp/ folder created')
   }
 
   // if the 'reports' folder does not exist, create it
   if (!fs.existsSync('./reports')) {
     fs.mkdirSync('./reports');
-    app.log.info('reports/ folder created')
+    logger.debug('reports/ folder created')
   }
 
   // ---------------------------------------------------------------------------
@@ -49,7 +50,7 @@ module.exports = (app, { getRouter }) => {
 
   // if the required environment variables are not defined, exit the App
   if (!env_vars.every(v => process.env[v] !== undefined)) {
-    app.log.error('Missing environment variables check for: ' + env_vars)
+    logger.error('Missing environment variables check for: ' + env_vars)
     process.exit(1)
   }
 
@@ -72,14 +73,16 @@ module.exports = (app, { getRouter }) => {
  
   // Watch for file changes to 'configPath' (yaml)
   fs.watch(configPath, (eventType, filename) => {
-    app.log.debug(`Event type: ${eventType}`);
+    logger.info('Reloading Health Check App Configuration')
+    logger.debug(`Event type: ${eventType}`);
 
     if (filename) {
-      app.log.info(`Filename: ${filename}`);
+      logger.debug(`Filename: ${filename}`);
       // reload App configurations from .github/config.yml
       config = loadConfig(app, configPath)
+
     } else {
-      app.log.error('Filename not provided');
+      logger.error('Filename not provided');
     }
   });
 
@@ -90,18 +93,20 @@ module.exports = (app, { getRouter }) => {
    * @returns 
    */
   function loadConfig(app, configPath) {
-    app.log.info('Loading Health Check Configuration');
+    logger.info('Loading Health Check App Configuration');
 
     try {
         // Load App configurations from config YAML file
-        const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
-        app.log.debug('config: ' + util.inspect(config));
+      const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+      logger.debug('config.logger.level: ' + config.logger.level)
+        setLogLevel(config.logger.level)
+        logger.debug('App config settings: ' + util.inspect(config));
         const globalParams = config.globals.params;
         const healthChecks = config.health_checks;
 
         // Check if 'globals.overwrite' is set to true
         if (config.globals.overwrite === true) {
-            app.log.info('Overwriting local variables with global variables');
+            logger.info('Overwriting local variables with global variables');
 
             // Merge globals with params, overwriting existing values and adding missing ones
             healthChecks.forEach(check => {
@@ -109,10 +114,10 @@ module.exports = (app, { getRouter }) => {
                 check.params[key] = globalParams[key];
               });
             });
-            app.log.info('OVERWRITE resolved config: ' + util.inspect(config, { showHidden: false, depth: null }))
+            logger.debug('OVERWRITE resolved config settings: ' + util.inspect(config, { showHidden: false, depth: null }))
 
         } else {
-            app.log.info('Not overwriting local variables with global variables');
+            logger.info('Not overwriting local variables with global variables');
 
             // Merge globals with params, only if the local variable is empty
             healthChecks.forEach(check => {
@@ -126,15 +131,15 @@ module.exports = (app, { getRouter }) => {
 
         // Loop over the health checks and log the parameters
         healthChecks.forEach(check => {
-            app.log.info('check [' + check.name + ']: ' + util.inspect(check.params));
+            logger.debug('HealthCheck [' + check.name + '] parameters: ' + util.inspect(check.params));
         });
 
         // log the configuration, including nested objects
-        app.log.info('resolved config: ' + util.inspect(config, { showHidden: false, depth: null }))
+        logger.debug('resolved config file: ' + util.inspect(config, { showHidden: false, depth: null }))
 
         return config;
     } catch (err) {
-        app.log.error(err);
+        logger.error(err);
     }
   }
 
@@ -148,20 +153,20 @@ module.exports = (app, { getRouter }) => {
    */
   async function runReports(context, config, jsonData) {
     // execute all registered reports 
-    // app.log.info('runReports:config.reports: ' + util.inspect(config.reports))
+    // logger.info('runReports:config.reports: ' + util.inspect(config.reports))
 
     // check if we have any reports to run and they are not null
     if (config.reports !== null) {
       for (let i = 0; i < config.reports.length; i++) {
         let report = config.reports[i];
-        // app.log.info('runReports:report['+report.name+']: ' + util.inspect(report))
+        // logger.info('runReports:report['+report.name+']: ' + util.inspect(report))
         // Eg.: ./healthChecks/reportAdapters/
         const reportModule = require(reportPath + '/' + report.name)
         const reportInstance = reportModule.getInstance()
         const reportConfig = config.reports.find(item => item.name === report.name);
 
         // DEBUG - log the report configuration
-        // console.log('runReports:reportConfig['+report.name+']: ' + util.inspect(reportConfig))
+        // logger.debug('runReports:reportConfig['+report.name+']: ' + util.inspect(reportConfig))
 
         // change the working directory to the root of the App 
         // Making sure the reports have the correct starting location
@@ -171,7 +176,7 @@ module.exports = (app, { getRouter }) => {
       }
     }
     else {
-      console.log('No reports to run')
+      logger.debug('No reports to run')
     }
   }
 
@@ -184,10 +189,10 @@ module.exports = (app, { getRouter }) => {
 
   // Watch for file changes (add, delete) to 'modulesPath'
   fs.watch(modulesPath, (eventType, filename) => {
-    app.log.debug(`Event type: ${eventType}`);
+    logger.debug(`Event type: ${eventType}`);
 
     if (filename) {
-      app.log.info(`Filename: ${filename}`);
+      logger.info(`Filename: ${filename}`);
       // read the contents of the HealthChecks/ folder
       // ignoring the files that start with a dot and folders/
       healthCheckFiles = fs.readdirSync(modulesPath).filter(file => {
@@ -195,7 +200,7 @@ module.exports = (app, { getRouter }) => {
       })
 
     } else {
-      app.log.error('Filename not provided');
+      logger.error('Filename not provided');
     }
   });
 
@@ -206,7 +211,7 @@ module.exports = (app, { getRouter }) => {
   // if the 'HEALTHCHECK_INTERVAL' environment variable is set, schedule the Health Checks
   if (process.env.HEALTHCHECK_INTERVAL !== undefined) {
 
-    app.log.info('running the health-checks on a cron schedule: ' + process.env.HEALTHCHECK_INTERVAL);
+    logger.info('running the health-checks on a cron schedule: ' + process.env.HEALTHCHECK_INTERVAL);
     // Schedule tasks to be run on the server.
     cron.schedule(process.env.HEALTHCHECK_INTERVAL, function () {
       executeHealthChecks(app, null, config)
@@ -219,29 +224,29 @@ module.exports = (app, { getRouter }) => {
 
   // Trigger on Issue comment '/status' to execute the Health checks
   app.on('issue_comment.created', async context => {
-    app.log.info('...issue comment created')
-    app.log.info('...issue comment body: ' + context.payload.comment.body)
+    logger.info('received event: issue comment created')
+    logger.debug('issue comment body: ' + context.payload.comment.body)
 
     // regular expression to make sure the comment starts with '/status', 
-    // as a single word including newlines
-    const regex = new RegExp('^/status\\b', 'm')
+    // as a single word including newlines, case insensitive
+    const regex = new RegExp('^/status\\b', 'i')
 
     if (regex.test(context.payload.comment.body)) {
       // prevent the bot from triggering itself
       if (context.payload.sender.type !== 'Bot') {
-        app.log.info('...sender is not a bot')
+        logger.debug('sender is not a bot')
 
         // execute all registered health checks
         const reportCollection = await executeHealthChecks(app, context, config)
         runReports(context, config, reportCollection)
       }
       else {
-        app.log.debug('...sender is a bot')
+        logger.debug('sender is a bot')
         return null
       }
     }
     else {
-      app.log.debug('...issue comment body does not contain /status')
+      logger.info('issue comment body does not contain /status')
       return null
     }
 
@@ -262,8 +267,8 @@ module.exports = (app, { getRouter }) => {
  * @returns report (JSON)
  */
 async function executeHealthChecks(app, context, config) {
-  app.log.info('executeHealthChecks')
-  // app.log.info('context: ' + util.inspect(context))
+  logger.info('executeHealthChecks')
+  // logger.info('context: ' + util.inspect(context))
 
   let reportCollection = []
   let result = {}
@@ -278,7 +283,7 @@ async function executeHealthChecks(app, context, config) {
       const command = cmd.getInstance()
       // run the health check and measure the execution time
       const start = process.hrtime.bigint();
-      app.log.info('Executing health check: ' + check.name)
+      logger.info('Executing health check: ' + check.name)
 
       // set the current working directory to the root of the App
       process.chdir(__dirname + '/..');
@@ -306,7 +311,7 @@ async function executeHealthChecks(app, context, config) {
   } catch (error) {
 
     // if ANY error occurs, log the error and add the error message to the result JSON
-    app.log.error('Error executing health checks: ' + error)
+    logger.error('Error executing health checks: ' + error)
     result.name = 'NA'
     result.description = 'NA'
     result.type = check.type

@@ -8,6 +8,8 @@ const fs = require('fs');
 const { markdownReport } = require('./reportConverter'); 
 const Command = require('../common/command.js')
 const util = require('util')
+const { logger } = require('../../logger');
+
 let instance = null
 
 class markdownReportFile extends Command {
@@ -35,7 +37,7 @@ class markdownReportFile extends Command {
    * @param {*} data 
    */
   async execute(context, config, jsonData) {
-    // console.log('markdownReportFile:config: ', config)
+    // logger.debug('markdownReportFile:config: ', config)
 
     const markdown = markdownReport(jsonData);
     const outputFilePath = config.params.path;

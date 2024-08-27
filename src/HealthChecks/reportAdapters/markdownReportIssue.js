@@ -6,6 +6,8 @@
 
 const { markdownReport } = require('./reportConverter.js');
 const Command = require('../common/command.js')
+const { logger } = require('../../logger');
+
 let instance = null
 
 class markdownReportIssue extends Command {
@@ -34,7 +36,7 @@ class markdownReportIssue extends Command {
    */
   async execute(context, config, jsonData) {
     try {
-      console.log('....markdownReportIssue:config: ', config)
+      logger.debug('....markdownReportIssue:config: ', config)
       const issueComment = markdownReport(jsonData)
       const comment = await context.octokit.issues.createComment({
         owner: context.payload.repository.owner.login,

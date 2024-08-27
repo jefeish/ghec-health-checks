@@ -28,6 +28,8 @@
     "node-cron": "^3.0.3",
     "nodemon": "^3.0.1",
     "nth-check": "^2.1.1",
+    "pino": "^9.3.2",
+    "pino-pretty": "^11.2.2",
     "probot": "^12.2.4",
     "simple-git": "^3.24.0"
   },

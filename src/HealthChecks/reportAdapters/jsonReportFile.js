@@ -7,6 +7,8 @@
 const fs = require('fs');
 const { jsonReport } = require('./reportConverter');
 const Command = require('../common/command.js')
+const { logger } = require('../../logger');
+
 let instance = null
 
 class jsonReportFile extends Command {
@@ -34,7 +36,7 @@ class jsonReportFile extends Command {
      * @param {*} data 
      */
     async execute(context, config, jsonData) {
-        console.log('jsonReportFile:config: ', config)
+        logger.debug('jsonReportFile:config: ', config)
 
         const json = JSON.stringify(jsonReport(jsonData), null, 2);
         const outputFilePath = config.params.path;

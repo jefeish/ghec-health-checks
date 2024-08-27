@@ -71,12 +71,12 @@ function Home() {
   }
 
 return (
-  <div>
+  <div style={{ width: '100%' }}>
     <Pagehead>Latest Health Check Report</Pagehead>
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
       <thead>
         <tr>
-          <th style={{ padding: '8px', background: '#f2f2f2' }}>Status</th>
+          <th style={{ padding: '8px', background: '#f2f2f2', width: '50px' }}>Status</th>
           <th style={{ padding: '8px', background: '#f2f2f2' }}>Name</th>
           <th style={{ padding: '8px', background: '#f2f2f2' }}>Description</th>
           <th style={{ padding: '8px', background: '#f2f2f2' }}>Result</th>

@@ -34,7 +34,7 @@ function Configuration() {
         return response.json();
       })
       .then((data) => {
-        // console.log('data: ' + data);
+        //console.log('data: ' + data);
         setData(data); // Set the retrieved data in the state
         setLoading(false);
       })

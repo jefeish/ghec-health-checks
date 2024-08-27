@@ -5,7 +5,6 @@ import {
     Button
 } from '@primer/react' // Import the Button component  
 
-
 import {
     SyncIcon,
     XCircleFillIcon,
@@ -13,8 +12,8 @@ import {
     ChecklistIcon
   } from '@primer/octicons-react'
 
-  
 import YAML from 'yaml';
+import axios from 'axios';
 
 const YamlEditor = ({ initialData, fontSize = '24px', fontFamily = '"Courier New", monospace', backgroundColor = '#333', color = '#fff' }) => {
   const [yamlData, setYamlData] = useState(initialData || '');
@@ -25,15 +24,30 @@ const YamlEditor = ({ initialData, fontSize = '24px', fontFamily = '"Courier New
   }, [initialData]);
 
     const handleYamlChange = (event) => {
-        setError(null); // Clear any previous errors
-    setYamlData(event.target.value);
+      setError(null); // Clear any previous errors
+      setYamlData(event.target.value);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
         const parsedData = YAML.parse(yamlData);
-        console.log('Parsed YAML Data:', parsedData);
-        // Handle saving or using the parsed YAML data as needed
+       console.log('Parsed YAML Data:', parsedData);
+      // Handle saving or using the parsed YAML data
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        const data = {
+          data: parsedData
+        };
+      
+        axios.post('api/config', data, { headers })
+          .then(response => {
+            alert(response.data);
+          })
+          .catch(error => {
+            console.error('There was an error!', error);
+          });
+
         setError(null); // Clear any previous errors
       } catch (error) {
         console.error('Error parsing YAML:', error.message);

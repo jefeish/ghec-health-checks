@@ -1,11 +1,13 @@
 /**
- * @description Event Handler Class (TEMPLATE).
+ * @description Health-Check Handler Class (check_issue_create).
  * @param
  */
 
 const Command = require('./common/command.js')
 const fs = require('fs-extra');
 const simpleGit = require('simple-git');
+const { logger } = require('../logger');
+
 let instance = null
 
 class check_issue_create extends Command {
@@ -36,7 +38,7 @@ class check_issue_create extends Command {
    */
   async execute(context, checkConfig) {
 
-    console.log(checkConfig.name +'.execute()')
+    logger.info(checkConfig.name +'.execute()')
     let checkResult = {
       "name": checkConfig.name,
       "description": checkConfig.description,
@@ -58,7 +60,7 @@ class check_issue_create extends Command {
       if (context.octokit !== undefined && checkConfig.params !== undefined) {
         
         const repoName = checkConfig.params.repo
-        console.log("repoName: ", repoName)
+        logger.debug("repoName: ", repoName)
 
         // ------------------------------------------------
         // list Issues
@@ -72,14 +74,14 @@ class check_issue_create extends Command {
 
         // if the 'data' object is empty, then return an error
         if (r1.data.length == 0) {
-          console.log('WARNING - '+ checkConfig.name +': no open issues found')
+          logger.debug('WARNING - '+ checkConfig.name +': no open issues found')
           checkResult.status = 'fail'
           checkResult.result = 'no open issues found'
           checkResult.description = checkConfig.description
           return checkResult
         }
         
-        console.log('Issue #: ', r1.data[0].number)
+        logger.debug('Issue #: ', r1.data[0].number)
 
         // ------------------------------------------------
         // close Issue
@@ -91,7 +93,7 @@ class check_issue_create extends Command {
           state: 'closed',
         });
 
-        console.log('Issue #: ', r2)
+        logger.debug('Issue #: ', r2)
 
         checkResult.name = checkConfig.name
         checkResult.status = 'pass'
@@ -102,15 +104,15 @@ class check_issue_create extends Command {
 
       }
       else {
-        console.log('WARNING - '+ checkConfig.name +': context is not defined')
+        logger.debug('WARNING - '+ checkConfig.name +': context is not defined')
         checkResult.status = 'fail'
         checkResult.result = 'context is not defined'
         checkResult.description = checkConfig.description
         return checkResult
       }
     } catch (err) {
-      console.log(err)
-      console.log('WARNING - '+ checkConfig.name +': context is not defined')
+      logger.debug(err)
+      logger.debug('WARNING - '+ checkConfig.name +': context is not defined')
       checkResult.status = 'fail'
       checkResult.result = err.message
       checkResult.description = checkConfig.description

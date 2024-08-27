@@ -1,11 +1,13 @@
 /**
- * @description Event Handler Class (TEMPLATE).
+ * @description Health-Check Handler Class (check_repo_commit).
  * @param
  */
 
 const Command = require('./common/command.js')
 const fs = require('fs-extra');
 const simpleGit = require('simple-git');
+const { logger } = require('../logger');
+
 let instance = null
 
 class check_repo_commit extends Command {
@@ -36,7 +38,7 @@ class check_repo_commit extends Command {
    */
   async execute(context, checkConfig) {
 
-    console.log('check_repo_commit.execute()')
+    logger.info(checkConfig.name +'.execute()')
     let checkResult = {
       "name": checkConfig.name,
       "description": checkConfig.description,
@@ -57,20 +59,20 @@ class check_repo_commit extends Command {
       // if the context is not defined or the checkConfig is not defined, return an error
       if (context.octokit !== undefined && checkConfig.params !== undefined) {
 
-        console.log("checkConfig: ", checkConfig)
+        logger.debug("checkConfig: ", checkConfig)
         checkResult = await this.createCommit(checkConfig);
 
         return checkResult
       }
       else {
-        console.log('WARNING - ' + checkConfig.name + ': context is not defined')
+        logger.info('WARNING - ' + checkConfig.name + ': context is not defined')
         checkResult.status = 'fail'
         checkResult.result = 'context is not defined'
         checkResult.description = checkConfig.description
         return checkResult
       }
     } catch (err) {
-      console.error('ERROR - ' + checkConfig.name + ': ' + err)
+      logger.error('ERROR - ' + checkConfig.name + ': ' + err)
       checkResult.status = 'fail'
       checkResult.result = err.message
       checkResult.description = checkConfig.description
@@ -97,16 +99,16 @@ class check_repo_commit extends Command {
     // Remove the local repository if it exists
     await this.removeLocalRepository(this.destinationPath, checkConfig)
 
-    console.log('Cloning repository:', repositoryUrl, 'to:', this.destinationPath)
+    logger.debug('Cloning repository:', repositoryUrl, 'to:', this.destinationPath)
 
     return new Promise((resolve, reject) => {
       this.git.clone(repositoryUrl, this.destinationPath, (error, result) => {
         if (error) {
-          console.error('Error cloning repository [' + this.destinationPath + ']:', error);
-          console.log('Result:', result);
+          logger.error('Error cloning repository [' + this.destinationPath + ']:', error);
+          logger.debug('Result:', result);
           reject(error);
         } else {
-          console.log('Repository [' + this.destinationPath + '] cloned successfully: ', result);
+          logger.debug('Repository [' + this.destinationPath + '] cloned successfully: ', result);
           resolve(true);
         }
       });
@@ -122,22 +124,22 @@ class check_repo_commit extends Command {
    * @param {*} checkConfig
    */
   async removeLocalRepository(directoryPath, checkConfig) {
-    console.log('\n\n ---------------------------------------------------\n Checking for directory: >' + directoryPath + '<\n ---------------------------------------------------\n\n');
+    logger.debug('\n\n ---------------------------------------------------\n Checking for directory: >' + directoryPath + '<\n ---------------------------------------------------\n\n');
 
     try {
       // check if the directory exists
       if (fs.existsSync(directoryPath)) {
-        console.log('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< Exists!\n ---------------------------------------------------\n\n');
+        logger.debug('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< Exists!\n ---------------------------------------------------\n\n');
 
         await fs.remove(directoryPath);
-        console.log('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< removed successfully.\n ---------------------------------------------------\n\n');
+        logger.debug('\n\n ---------------------------------------------------\n Directory >' + directoryPath + '< removed successfully.\n ---------------------------------------------------\n\n');
       }
     } catch (error) {
-      console.error('Error removing directory >' + directoryPath + '<:' + error);
+      logger.error('Error removing directory >' + directoryPath + '<:' + error);
     }
     // log the folder current contents
     fs.readdirSync(checkConfig.params.target + '/').forEach(file => {
-      console.log('DEBUG: ' + checkConfig.params.target + '/' + file);
+      logger.debug('The folder current contents: ' + checkConfig.params.target + '/' + file);
     });
   }
 
@@ -152,17 +154,17 @@ class check_repo_commit extends Command {
       // format the timestamp to a readable date
       const date = new Date(timestamp).toUTCString();
 
-      console.log("checkConfig: ", checkConfig)
-      console.log("checkConfig.params.repo: ", checkConfig.params.repo)
+      logger.debug("checkConfig: ", checkConfig)
+      logger.debug("checkConfig.params.repo: ", checkConfig.params.repo)
       const repoPath = checkConfig.params.target + '/' + checkConfig.params.repo.split('/').pop().replace('.git', '');
-      console.log("repoPath: ", repoPath)
+      logger.debug("repoPath: ", repoPath)
 
       // initialize the git repository
       await this.cloneRepository(checkConfig)
-      console.log('Repository cloned to:', repoPath);
+      logger.debug('Repository cloned to:', repoPath);
 
       // create new file content using the timestamp
-      const fileContent = `console.log('Updated code: ${date}');`;
+      const fileContent = `logger.debug('Updated code: ${date}');`;
 
       // File path
       const filePath = repoPath + '/example.js';
@@ -171,37 +173,37 @@ class check_repo_commit extends Command {
       require('fs').writeFileSync(filePath, fileContent, 'utf-8');
 
       // debug: print the file content and list the files in the directory
-      console.log('File content:', fileContent);
-      console.log('Files in the directory:', require('fs').readdirSync(repoPath));
+      logger.debug('File content:', fileContent);
+      logger.debug('Files in the directory:', require('fs').readdirSync(repoPath));
 
       // Change working directory to the cloned repository
       await this.git.cwd(repoPath);
 
-      console.log('Changed working directory to:', repoPath);
+      logger.debug('Changed working directory to:', repoPath);
 
       //print a git status
-      console.log('Git status:', await this.git.status());
+      logger.debug('Git status:', await this.git.status());
 
       // Add the file to the staging area
       this.git.add(filePath)
         // Commit the changes with a commit message
         .commit('updated example.js', (error, result) => {
           if (error) {
-            console.error('Error occurred while committing:', error);
+            logger.error('Error occurred while committing:', error);
             return;
           }
-          console.log('Changes committed successfully:', result);
+          logger.debug('Changes committed successfully:', result);
           // Push the changes to the origin
           this.git.push('origin', checkConfig.params.branch || 'main', (pushError, pushResult) => {
             if (pushError) {
-              console.error('Error occurred while pushing:', pushError);
+              logger.error('Error occurred while pushing:', pushError);
               return;
             }
-            console.log('Changes pushed successfully:', pushResult);
+            logger.debug('Changes pushed successfully:', pushResult);
           });
         });
     } catch (error) {
-      console.error('Error occurred while creating a commit:', error);
+      logger.error('Error occurred while creating a commit:', error);
       // escape the 'error' object to a string, excluding all '|' characters
       error = JSON.stringify(error).replace(/\|/g, '');
 

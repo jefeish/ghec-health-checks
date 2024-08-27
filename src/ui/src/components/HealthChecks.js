@@ -79,7 +79,7 @@ function HealthChecks() {
         </Button>
         <br />
 
-        <h2>Health Check Modules</h2>
+        <h3>Health Check Modules</h3>
         <ul>
           {data.map((item) => (
             <li
@@ -94,7 +94,7 @@ function HealthChecks() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <h3 style={{ margin: '0', marginRight: '10px' }}>{item.name}</h3>
+                <b style={{ margin: '0', marginRight: '10px' }}>{item.name} - </b>
                 <p style={{ margin: '0' }}>{item.description}</p>
               </div>
               {item.state === 'active' ? (

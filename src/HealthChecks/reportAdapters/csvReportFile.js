@@ -7,6 +7,8 @@
 const fs = require('fs');
 const { csvReport } = require('./reportConverter');
 const Command = require('../common/command.js')
+const { logger } = require('../../logger');
+
 let instance = null
 
 class csvReportFile extends Command {
@@ -34,7 +36,7 @@ class csvReportFile extends Command {
      * @param {*} data 
      */
     async execute(context, config, jsonData) {
-        console.log('csvReportFile:config: ', config)
+        logger.debug('csvReportFile:config: ', config)
 
         const csv = csvReport(jsonData);
         const outputFilePath = config.params.path;

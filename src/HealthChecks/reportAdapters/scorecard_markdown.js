@@ -1,11 +1,13 @@
 /**
- * @description Event Handler Class (TEMPLATE).
+ * @description Health-Check Handler Class (TEMPLATE).
  * @param
  * PLEASE REPLACE ALL `change this!` MARKERS WITH YOUR OWN CODE 
  * (including this one)
  */
 const util = require('util')
 const Command = require('../common/command.js')
+const { logger } = require('../../logger');
+
 let instance = null
 
 class scorecard_markdown extends Command {
@@ -31,7 +33,7 @@ class scorecard_markdown extends Command {
      * @param {*} data 
      */
     async execute(context, report_summary, params) {
-        context.log.info('scorecard_markdown.execute()')
+        logger.info('scorecard_markdown.execute()')
         
         try {
             let score_calculation_details = ''
@@ -49,7 +51,7 @@ class scorecard_markdown extends Command {
                 comment += '|---'
             })
             comment += '|\n'
-            console.log('headers: ' + util.inspect(comment))
+            logger.debug('headers: ' + util.inspect(comment))
 
             // iterate over the report_summary and create a comment
             Object.keys(report_summary).forEach(item => {
@@ -75,7 +77,7 @@ class scorecard_markdown extends Command {
                 body: comment
             })
         } catch (err) {
-            context.log(err)
+            logger.error(err)
             return -1
         }
     }

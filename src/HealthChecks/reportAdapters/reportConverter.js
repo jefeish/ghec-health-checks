@@ -14,7 +14,7 @@
 //     let csv = keys.join(',') + '\n';
 
 //     jsonData.forEach(item => {
-//         console.log('item: ', item)
+//         logger.debug('item: ', item)
 //         let row = keys.map(key => {
 //             let value = item[key];
 //             // Check if the value is not empty and contains a comma
